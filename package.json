@@ -1,0 +1,72 @@
+{
+  "name": "node-uri",
+  "version": "1.0.0",
+  "author": "Adrien Valcke <adrienvalcke@icloud.com> (https://github.com/adrienv1520)",
+  "description": "An RFC-3986 compliant Node.js module to parse URIs, punycode, punydecode, test URIs, URLs, Sitemap URLS, domains, IPs but also encode and decode URIs, URLs and Sitemap URLs",
+  "bin": {},
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "eslint lib/",
+    "pretest": "npm run lint",
+    "test": "mocha test/* --exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:adrienv1520/node-uri.git"
+  },
+  "engines": {
+    "node": ">=8.17.0",
+    "npm": ">=6.13.4"
+  },
+  "keywords": [
+    "node-uri",
+    "punycode",
+    "punydecode",
+    "parse uri",
+    "parse",
+    "parser",
+    "uri",
+    "url",
+    "sitemap",
+    "ip",
+    "domain",
+    "seo",
+    "valid uri",
+    "valid url",
+    "valid ip",
+    "valid domain",
+    "valid sitemap",
+    "test uri",
+    "test url",
+    "test ip",
+    "test domain",
+    "test sitemap",
+    "check uri",
+    "check url",
+    "check ip",
+    "check domain",
+    "check sitemap",
+    "encode",
+    "decode",
+    "encode uri component",
+    "encode uri",
+    "decode uri component",
+    "decode uri"
+  ],
+  "files": [
+    "lib"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "~4.2.0",
+    "chai-as-promised": "~7.1.1",
+    "eslint": "~7.9.0",
+    "eslint-config-airbnb-base": "~14.2.0",
+    "eslint-plugin-import": "~2.22.0",
+    "mocha": "~8.1.3"
+  },
+  "private": false,
+  "preferGlobal": false,
+  "analyze": false,
+  "license": "MIT"
+}
