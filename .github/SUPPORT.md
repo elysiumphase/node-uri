@@ -2,7 +2,7 @@
 
 ## Finding Support
 If you have a security concern,
-please see our [security page](#.github/SECURITY.md).
+please see our [security page](.github/SECURITY.md).
 
 If you're looking for programming help,
 for answers to questions,
