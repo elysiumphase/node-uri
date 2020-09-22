@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="doc/node-uri.png" alt="node-uri"/>
+  <img src="docs/node-uri.png" alt="node-uri"/>
 <p>
 
 <p align="center">
-  An <a href="https://tools.ietf.org/html/rfc3986" target="_blank">RFC-3986</a> compliant Node.js module to parse URIs, punycode, punydecode, test URIs, URLs, Sitemap URLS, domains, IPs but also encode and decode URIs, URLs and Sitemap URLs.
+  An <a href="https://tools.ietf.org/html/rfc3986" target="_blank">RFC-3986</a> compliant and zero-dependencies Node.js module to parse URIs, punycode, punydecode, test URIs, URLs, Sitemap URLS, domains, IPs but also encode and decode URIs, URLs and Sitemap URLs.
 <p>
 
 # Table of Contents
@@ -44,7 +44,10 @@
   - [Errors](#errors)
     - [Object structure](#object-structure)
     - [Codes](#codes)
+- [Code of Conduct](#code-of-conduct)
 - [Contributing](#contributing)
+- [Support](#support)
+- [Security](#security)
 - [Licence](#licence)
 
 # Presentation
@@ -193,13 +196,13 @@ Parse a string to get URI components with Internationalized Domain Name (IDN) su
 
 **Generic syntax**:
 
-![URI Syntax](doc/uri-syntax.png "URI Syntax")
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
 **Example URIs**:
 
-![RFC-3986](doc/rfc-3986.png "RFC-3986")
+![RFC-3986](docs/rfc-3986.png "RFC-3986")
 
 <br/>
 
@@ -591,7 +594,7 @@ This function uses `checkURISyntax` to precheck URI type and syntax.
 
 **Generic syntax**:
 
-![URI Syntax](doc/uri-syntax.png "URI Syntax")
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
@@ -1371,12 +1374,19 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
 
 </table>
 
+# Code of Conduct
+This project has a [Code of Conduct](.github/CODE_OF_CONDUCT.md). By interacting with this repository, organization, or community you agree to abide by its terms.
+
 # Contributing
+Please have a look to our [TODO](TODO.md) for any work in progress.
 
-See [TODO](TODO.md) for any work in progress.
+Please take also a moment to read our [Contributing Guidelines](.github/CONTRIBUTING.md) if you haven't yet done so.
 
-Please take also a moment to read our [contributing guidelines](CONTRIBUTING.md) if you haven't yet done so.
+# Support
+Please see our [Support](.github/SUPPORT.md) page if you have any questions or for any help needed.
+
+# Security
+For any security concerns or issues, please visit our [Security Policy](.github/SECURITY.md) page.
 
 # Licence
-
 [MIT](LICENSE.md).
