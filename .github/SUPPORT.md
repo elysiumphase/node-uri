@@ -10,8 +10,8 @@ or to discuss with the team,
 please feel free to contact the project team at **adrienvalcke@icloud.com**.
 
 If you'd like to contribute to node-uri,
-see our [Contributing Guidelines](#.github/CONTRIBUTING.md)
-and our [TODO](#TODO.md).
+see our [Contributing Guidelines](CONTRIBUTING.md)
+and our [TODO](../TODO.md).
 
 If you've found a bug in a [supported version](#supported-versions)
 of node-uri, please report it with the
