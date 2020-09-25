@@ -6,6 +6,9 @@
 - fix " characters not allowed in any uri
 - fix sitemap characters
 - remove checkURISyntax from API
+- change recomposeURI to ignore port, userinfo, query and fragment if not valid
+- add max URL length at 2048
+- userinfo chars accept A-Z
 
 ## 1.0.1 - delivery @22/09/2020
 

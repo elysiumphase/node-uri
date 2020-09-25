@@ -606,6 +606,7 @@ checkURI('foo://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose');
 //   pathqf: '/over/there?name=ferret#nose',
 //   query: 'name=ferret',
 //   fragment: 'nose',
+//   href: 'foo://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose',
 //   valid: true
 // }
 ```
@@ -683,6 +684,7 @@ checkHttpURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose'
 //   pathqf: '/over/there?name=ferret#nose',
 //   query: 'name=ferret',
 //   fragment: 'nose',
+//   href: 'http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose',
 //   valid: true
 // }
 ```
@@ -777,6 +779,7 @@ checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferre
 //   pathqf: '/over/there?name=ferret&amp;catch=rabbits#nose',
 //   query: 'name=ferret&amp;catch=rabbits',
 //   fragment: 'nose',
+//   href: 'http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret&amp;catch=rabbits#nose',
 //   valid: true
 // }
 ```

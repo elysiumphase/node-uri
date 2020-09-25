@@ -1,20 +1,11 @@
 # TODO
 
-- J'en suis à:
--> encoders: il va falloir encoder les path, query et fragment selon les caractères autorisés
---> finir dans encoders et écrire les fonctions dans chars (reste pour query et fragment)
-
-sitemap:
-- url finale encodée en xml pas plus de 2 048 caractères
-- seulement des minuscules hormis percent-encoded
-- ni certains codes de contrôle ou caractères spéciaux tels que * et {}
-- si xml, encoder les entités
-
 doc:
 - ajouter les nouveaux codes d'erreurs pour path, query, fragment
 
 tests:
 - nouvelles fonctions: checkPathqf, hostToURI, ...
+- revoir tous les tests et descriptions de fonctions
 
 fix:
 - encode et decode: se baser sur les path, query, fragment chars
