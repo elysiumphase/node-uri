@@ -578,6 +578,7 @@ Check an URI is valid according to **RFC-3986**.
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
     - `URI_INVALID_CHAR`
+    - `URI_INVALID_SITEMAP_ENCODING`
 
 <br/>
 
@@ -1237,7 +1238,7 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
-    <td rowspan="15"><i>URIError</i></td>
+    <td rowspan="16"><i>URIError</i></td>
   </tr>
 
   <tr>
@@ -1321,6 +1322,12 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   <tr>
     <td>URI_INVALID_SITEMAP_CHAR</td>
     <td>URI contains an invalid sitemap character</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_INVALID_SITEMAP_ENCODING</td>
+    <td>URI contains an invalid sitemap escape code</td>
     <td><code>lib/checkers</code></td>
   </tr>
 

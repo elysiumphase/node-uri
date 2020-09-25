@@ -1,11 +1,11 @@
 # TODO
 
+tests:
+- continue at checkers/pathqf
+- revoir tous les tests et descriptions de fonctions / README
+
 doc:
 - ajouter les nouveaux codes d'erreurs pour path, query, fragment
-
-tests:
-- nouvelles fonctions: checkPathqf, hostToURI, ...
-- revoir tous les tests et descriptions de fonctions
 
 fix:
 - encode et decode: se baser sur les path, query, fragment chars

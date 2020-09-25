@@ -1,6 +1,8 @@
 const { expect } = require('../Common');
 const {
   checkPercentEncoding,
+  checkSitemapEncoding,
+  checkPathqf,
   checkURISyntax,
   checkURI,
   checkHttpURL,
@@ -83,12 +85,6 @@ describe('#checkers', function() {
       expect(checkPercentEncoding('percent%C3%BCencoding', 10)).to.be.a('number').and.to.equals(2);
     });
 
-    it('should return a correct offset if % character is at the specified index', function() {
-      expect(checkPercentEncoding('percent%20encoding', 7)).to.be.a('number').and.to.equals(2);
-      expect(checkPercentEncoding('percent%C3%BCencoding', 7)).to.be.a('number').and.to.equals(2);
-      expect(checkPercentEncoding('percent%C3%BCencoding', 10)).to.be.a('number').and.to.equals(2);
-    });
-
     it('should throw an uri error when percent encoding is malformed', function() {
       expect(() => checkPercentEncoding('percent%2encoding', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
       expect(() => checkPercentEncoding('percent%2éncoding', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
@@ -99,6 +95,71 @@ describe('#checkers', function() {
       expect(() => checkPercentEncoding('percent%', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
       expect(() => checkPercentEncoding('percent%A', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
       expect(() => checkPercentEncoding('percent%9', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+    });
+  });
+
+  context('when using checkSitemapEncoding', function() {
+    it('should throw an uri error when uri is not a string', function() {
+      expect(() => checkSitemapEncoding()).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(undefined)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(null)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(NaN)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding([])).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(new Error('error'))).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(5)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(true)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding(false)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding({})).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+    });
+
+    it('should return an offset at 0 if a string is empty', function() {
+      expect(checkSitemapEncoding('')).to.be.a('number').and.to.equals(0);
+    });
+
+    it('should return an offset at 0 if a string is not empty but index is missing', function() {
+      expect(checkSitemapEncoding('percent&encoding')).to.be.a('number').and.to.equals(0);
+    });
+
+    it('should return an offset at 0 if a string is not empty but index is not a number', function() {
+      expect(checkSitemapEncoding('percent&encoding', {})).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&encoding', [])).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&encoding', 5)).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&encoding', true)).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&encoding', 'index')).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&encoding', new Error('error'))).to.be.a('number').and.to.equals(0);
+    });
+
+    it('should return an offset at 0 if entity is at a bad index', function() {
+      expect(checkSitemapEncoding('percent&encoding', 6)).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&encoding', 8)).to.be.a('number').and.to.equals(0);
+    });
+
+    it('should return a correct offset if entity is at the specified index when stringLen is specified', function() {
+      expect(checkSitemapEncoding('percent&amp;encoding', 7, 18)).to.be.a('number').and.to.equals(4);
+      expect(checkSitemapEncoding('percent&amp;&apos;encoding', 12, 26)).to.be.a('number').and.to.equals(5);
+    });
+
+    it('should return an offset at 0 if entity is at the specified index but stringLen is less than or equal to index', function() {
+      expect(checkSitemapEncoding('percent&amp;encoding', 7, 2)).to.be.a('number').and.to.equals(0);
+      expect(checkSitemapEncoding('percent&amp;encoding', 7, 7)).to.be.a('number').and.to.equals(0);
+    });
+
+    it('should throw an uri error if entity is at the specified index but stringLen is misused (index or index + 1 length)', function() {
+      expect(() => checkSitemapEncoding('percent&amp;encoding', 7, 8)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding('percent&amp;encoding', 7, 9)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+    });
+
+    it('should return a correct offset if entity is at the specified index', function() {
+      expect(checkSitemapEncoding('percent&amp;encoding', 7)).to.be.a('number').and.to.equals(4);
+      expect(checkSitemapEncoding('percent&apos;encoding', 7)).to.be.a('number').and.to.equals(5);
+    });
+
+    it('should throw an uri error when sitemap encoding is malformed or contains invalid escape codes', function() {
+      expect(() => checkSitemapEncoding('percent&ampencoding', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding('percent&&', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding('percent&apos', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding('percent*encoding', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkSitemapEncoding('percent\'', 7)).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
     });
   });
 
