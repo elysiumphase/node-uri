@@ -1242,12 +1242,6 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
-    <td>URI_INVALID_PERCENT_ENCODING</td>
-    <td>A percent-encoding character is not valid</td>
-    <td><code>lib/checkers</code></td>
-  </tr>
-
-  <tr>
     <td>URI_INVALID_TYPE</td>
     <td>URI variable type is not valid</td>
     <td><code>lib/checkers</code></td>
@@ -1302,12 +1296,6 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
-    <td>URI_INVALID_USERINFO_CHAR</td>
-    <td>URI userinfo contains an invalid character</td>
-    <td><code>lib/checkers</code></td>
-  </tr>
-
-  <tr>
     <td>URI_INVALID_PORT</td>
     <td>URI port is not a number</td>
     <td><code>lib/checkers</code><br/><code>lib/decoders</code><br/><code>lib/encoders</code></td>
@@ -1320,8 +1308,38 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
+    <td>URI_INVALID_PATH_CHAR</td>
+    <td>URI path contains an invalid character</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_INVALID_QUERY_CHAR</td>
+    <td>URI query contains an invalid character</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_INVALID_FRAGMENT_CHAR</td>
+    <td>URI fragment contains an invalid character</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_INVALID_USERINFO_CHAR</td>
+    <td>URI userinfo contains an invalid character</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
     <td>URI_INVALID_SITEMAP_CHAR</td>
     <td>URI contains an invalid sitemap character</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_INVALID_PERCENT_ENCODING</td>
+    <td>A percent-encoding character is not valid</td>
     <td><code>lib/checkers</code></td>
   </tr>
 

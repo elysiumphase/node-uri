@@ -16,7 +16,7 @@ const unreserved = `${az}${AZ}${digits}-._~`;
 const genDelims = ':/?#[]@';
 const subDelims = '!$&\'()*+,;=';
 const reserved = `${genDelims}${subDelims}`;
-const sitemapSubDelims = subDelims.replace('*', '');
+const sitemapSubDelims = subDelims.replace(/[*']/g, '');
 
 const allowedSchemeChars = `${az}${digits}+-.`;
 const allowedDomainChars = `${az}${digits}-`;
@@ -48,9 +48,9 @@ const disallowedUserinfoChars = '#/?@[]';
 const disallowedPathChars = '?#[]';
 const disallowedQueryOrFragmentChars = '#[]';
 
-const disallowedSitemapUserinfoChars = `${disallowedUserinfoChars}${AZ}*`;
-const disallowedSitemapPathChars = `${disallowedPathChars}${AZ}*`;
-const disallowedSitemapQueryOrFragmentChars = `${disallowedQueryOrFragmentChars}${AZ}*`;
+const disallowedSitemapUserinfoChars = `${disallowedUserinfoChars}${AZ}*\'`;
+const disallowedSitemapPathChars = `${disallowedPathChars}${AZ}*\'`;
+const disallowedSitemapQueryOrFragmentChars = `${disallowedQueryOrFragmentChars}${AZ}*\'`;
 
 const disallowedUserinfoCharsToEncode = `${disallowedUserinfoChars}%`;
 const disallowedPathCharsToEncode = `${disallowedPathChars}%`;
