@@ -580,7 +580,6 @@ Check an URI is valid according to **RFC-3986**.
     - `URI_INVALID_QUERY_CHAR`
     - `URI_INVALID_FRAGMENT_CHAR`
     - `URI_INVALID_PERCENT_ENCODING`
-    - `URI_INVALID_SITEMAP_ENCODING`
 
 <br/>
 
@@ -590,13 +589,13 @@ checkURI(); // throws URIError with code URI_INVALID_TYPE
 checkURI('://example.com'); // throws URIError with code URI_MISSING_SCHEME
 checkURI('foo:////bar'); // throws URIError with code URI_INVALID_PATH
 checkURI('foo://xn--iñvalid.com'); // throws URIError with code URI_INVALID_HOST
-checkURI('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PERCENT_ENCODING
 checkURI('fôo:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
 checkURI('foo://üser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkURI('foo://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
 checkURI('foo://bar.com/°'); // throws URIError with code URI_INVALID_PATH_CHAR
 checkURI('foo://bar.com/over/there?quêry=5'); // throws URIError with code URI_INVALID_QUERY_CHAR
 checkURI('foo://bar.com/over/there?query=5#anch#r'); // throws URIError with code URI_INVALID_FRAGMENT_CHAR
+checkURI('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PERCENT_ENCODING
 
 checkURI('foo://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose');
 // {
@@ -655,14 +654,12 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
     - `URI_MISSING_PATH`
     - `URI_INVALID_PATH`
     - `URI_INVALID_HOST`
-    - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
     - `URI_INVALID_PATH_CHAR`
     - `URI_INVALID_QUERY_CHAR`
     - `URI_INVALID_FRAGMENT_CHAR`
     - `URI_INVALID_PERCENT_ENCODING`
-    - `URI_INVALID_SITEMAP_ENCODING`
     - `URI_INVALID_SCHEME`
     - `URI_MISSING_AUTHORITY`
     - `URI_MAX_LENGTH_URL`
@@ -675,12 +672,15 @@ checkHttpURL(); // throws URIError with code URI_INVALID_TYPE
 checkHttpURL('://example.com'); // throws URIError with code URI_MISSING_SCHEME
 checkHttpURL('http:////bar'); // throws URIError with code URI_INVALID_PATH
 checkHttpURL('http://xn--iñvalid.com'); // throws URIError with code URI_INVALID_HOST
-checkHttpURL('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PERCENT_ENCODING
-checkHttpURL('hôtp:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
 checkHttpURL('http://üser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkHttpURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
-checkHttpURL('http://bar.com/°'); // throws URIError with code ???
+checkHttpURL('http://bar.com/°'); // throws URIError with code URI_INVALID_PATH_CHAR
+checkHttpURL('http://bar.com/over/there?quêry=5'); // throws URIError with code URI_INVALID_QUERY_CHAR
+checkHttpURL('http://bar.com/over/there?query=5#anch#r'); // throws URIError with code URI_INVALID_FRAGMENT_CHAR
+checkHttpURL('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PERCENT_ENCODING
+checkHttpURL('httê://bar.com:8080'); // throws URIError with code URI_INVALID_SCHEME
 checkHttpURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
+checkHttpURL(`http://example.com/${'path'.repeat(2040)}`); // throws URIError with code URI_MAX_LENGTH_URL
 
 checkHttpURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose');
 // {
@@ -703,20 +703,20 @@ checkHttpURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose'
 ## checkHttpsURL(uri)
 Check an URI is a valid HTTPS URL. Same behavior than __[checkHttpURL](#checkhttpurluri)__ except scheme must be `https` or `HTTPS`.
 
-
 ## checkHttpSitemapURL(uri)
 Check an URI is a valid HTTP URL to be used in an XML sitemap file.
 
-For text sitemap please use __[checkHttpURL](#checkhttpurluri)__ as there is no need to escape entities.
+For text sitemap please refer to __[checkHttpURL](#checkhttpurluri)__ as there is no need to escape entities.
 
-This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__.
+This function uses *checkHttpURL* to __[check URI provided is valid](#checkhttpurluri)__.
 
 **Rules**:
 1. scheme must be `http` or `HTTP`;
-2. authority is not missing;
-3. specific characters are escaped.
+2. authority is required;
+3. specific characters are escaped;
+4. URL must be less than 2048 characters.
 
-**Characters to be escaped in an URL **:
+**Valid URI characters to be escaped in a sitemap URL **:
 
 | Character    | Value | Escape Code |
 | :----------- |:-----:| :---------: |
@@ -753,11 +753,16 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
     - `URI_MISSING_PATH`
     - `URI_INVALID_PATH`
     - `URI_INVALID_HOST`
-    - `URI_INVALID_PERCENT_ENCODING`
-    - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
+    - `URI_INVALID_PATH_CHAR`
+    - `URI_INVALID_QUERY_CHAR`
+    - `URI_INVALID_FRAGMENT_CHAR`
+    - `URI_INVALID_PERCENT_ENCODING`
+    - `URI_INVALID_SITEMAP_ENCODING`
+    - `URI_INVALID_SCHEME`
     - `URI_MISSING_AUTHORITY`
+    - `URI_MAX_LENGTH_URL`
 
 <br/>
 
@@ -767,13 +772,16 @@ checkHttpSitemapURL(); // throws URIError with code URI_INVALID_TYPE
 checkHttpSitemapURL('://example.com'); // throws URIError with code URI_MISSING_SCHEME
 checkHttpSitemapURL('http:////bar'); // throws URIError with code URI_INVALID_PATH
 checkHttpSitemapURL('http://xn--iñvalid.com'); // throws URIError with code URI_INVALID_HOST
-checkHttpSitemapURL('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PERCENT_ENCODING
-checkHttpSitemapURL('hôtp:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
-checkHttpSitemapURL('http://üser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
+checkHttpSitemapURL('http://*ser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkHttpSitemapURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
-checkHttpSitemapURL('http://bar.com/°'); // throws URIError with code ???
+checkHttpSitemapURL('http://bar.com/path\''); // throws URIError with code URI_INVALID_PATH_CHAR
+checkHttpSitemapURL('http://bar.com/over/there?a=5&b=9'); // throws URIError with code URI_INVALID_QUERY_CHAR
+checkHttpSitemapURL('http://bar.com/over/there?a=5#anch*r'); // throws URIError with code URI_INVALID_FRAGMENT_CHAR
+checkHttpSitemapURL('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PERCENT_ENCODING
+checkHttpSitemapURL('http://www.bar.baz/foo?a=5&am;b=9') // throws URIError with code URI_INVALID_SITEMAP_ENCODING
+checkHttpSitemapURL('hêtp://bar.com:8080'); // throws URIError with code URI_INVALID_SCHEME
 checkHttpSitemapURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
-checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret&catch=rabbits#nose'); // throws URIError with code ???
+checkHttpSitemapURL(`http://example.com/${'path'.repeat(2040)}`); // throws URIError with code URI_MAX_LENGTH_URL
 
 checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret&amp;catch=rabbits#nose');
 // {
@@ -797,10 +805,10 @@ checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferre
 Check an URI is a valid HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme must be `https` or `HTTPS`.
 
 ## checkWebURL(uri)
-Check an URI is a valid HTTP or HTTPS URL. Same behavior than __[checkHttpURL](#checkhttpurluri)__ except scheme can be be `http`/`HTTP` or `https`/`HTTPS`.
+Check an URI is a valid HTTP or HTTPS URL. Same behavior than __[checkHttpURL](#checkhttpurluri)__ except scheme can be `http`/`HTTP` or `https`/`HTTPS`.
 
 ## checkSitemapURL(uri)
-Check an URI is a valid HTTP or HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme can be be `http`/`HTTP` or `https`/`HTTPS`.
+Check an URI is a valid HTTP or HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme can be `http`/`HTTP` or `https`/`HTTPS`.
 
 ## encodeURIComponentString(component, options)
 Encode an URI component according to **RFC-3986** with Sitemap entities support.

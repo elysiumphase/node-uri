@@ -56,15 +56,13 @@ const notUri = [
   'foo://usér:pass@example.com:8042/over/there?name=ferret#nose',
   'foo://us€r:pass@example.com:8042/over/there?name=ferret#nose',
   'foo://user:pa[ss@example.com:8042/over/there?name=ferret#nose',
-  'foo://usEr:pass@example.com:8042/over/there?name=ferret#nose',
-  'foo://usEr:pasS@example.com:8042/over/there?name=ferret#nose',
   'foo://user%:pass@example.com:8042/over/there?name=ferret#nose',
   'foo://user%20%2z:pass@example.com:8042/over/there?name=ferret#nose',
   'foo://user:%acpass@example.com:8042/over/there?name=ferret#nose',
   'foo://user:pass%@example.com:8042/over/there?name=ferret#nose',
   'foo://user:pass%a@example.com:8042/over/there?name=ferret#nose',
   'foo://999.999.999.999:8042/over/there?name=ferret#nose',
-  'foo://3ffe:b00::1::a/over/there?name=ferret#nose',
+  'foo://[3ffe:b00::1::a]/over/there?name=ferret#nose',
   'foo://aaaaaa:8042/over/there?name=ferret#nose',
   'foo://com.com/over/there?name=ferret#nose',
   'foo://example..com/over/there?name=ferret#nose',
@@ -95,9 +93,19 @@ const notUri = [
   'foo://example.com:8042/over/there?name=ferret#nose%9',
   'foo://example.com:8042/over/there?name=ferret#nose%8c',
   'foo://example.com:8042/over/there?name=ferret#nose%a9',
+  'foo://example.com:8042/over/"there?name=ferret#nose',
 ];
 
 const http = [
+  'http://localhost',
+  'http://localhost:8080',
+  'http://127.0.0.1:8080',
+  'http://127.0.0.1:8080/',
+  'http://user:pass@127.0.0.1:8080/?',
+  'http://user:pass@223.255.255.255/',
+  'http://[2001:0000:1234:0000:0000:C1C0:ABCD:0876]:8080',
+  'http://user:pass@[fe80::7:8%eth0]:8080',
+  'http://user:pass@[fe80::7:8%eth0]/path?q=5#anchor',
   'http://example.com.',
   'http://www.example.com.',
   'http://www.example.com',
@@ -110,7 +118,6 @@ const http = [
   'http://user:pass@example.com./over/there?page=5#coin',
   'http://中文.com',
   'http://example.com:8042/it\'sover/there?name=ferret#nose',
-  'http://example.com:8042/it"s%20over/there?name=ferret#nose',
   'http://example.com:8042/over/there?name=ferret&pseudo=superhero#nose',
   'http://username:password@www.example.com:80/path/to/file.php?foo=316&bar=this+has+spaces#anchor',
   'http://das-küchengeflüster.de/feed',
@@ -158,7 +165,6 @@ const https = [
   'https://user:pass@example.com./over/there?page=5#coin',
   'https://中文.com',
   'https://example.com:8042/it\'sover/there?name=ferret#nose',
-  'https://example.com:8042/it"s%20over/there?name=ferret#nose',
   'https://example.com:8042/over/there?name=ferret&pseudo=superhero#nose',
   'https://中文.com:8042/over/there?name=ferret&pseudo=superhero#nose',
 ];
@@ -207,9 +213,6 @@ const sitemap = [
   'https://中文.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose',
   'http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose',
   'http://example.com:8042/it&apos;sover/there?name=ferret#nose',
-  'http://example.com:8042/it&quot;sover/there?name=ferret#nose',
-  'http://example.com:8042/&lt;over&gt;/there?name=ferret#nose',
-  'http://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose',
 ];
 
 const notSitemap = [

@@ -1,7 +1,7 @@
 # TODO
 
 tests:
-- continue at checkers/checkURI
+- continue at decoders
 - revoir tous les tests et descriptions de fonctions / README
 
 doc:
