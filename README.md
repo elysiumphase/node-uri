@@ -533,7 +533,7 @@ Check an URI is valid according to **RFC-3986**.
 4. if authority is not present path must not start with `//`;
 5. __<a href="https://tools.ietf.org/html/rfc3986#section-3.1" target="_blank">scheme can only have specific characters</a>__;
 6. if authority is present:
-  1. host must be a valid IP or domain;
+  1. host must be a valid IP or domain name;
   2. __<a href="https://tools.ietf.org/html/rfc3986#section-3.2.1" target="_blank">userinfo, if any, can only have specific characters</a>__;
   3. port, if any, must be an integer.
 7. __<a href="https://tools.ietf.org/html/rfc3986#section-3.3" target="_blank">path, query and fragment can only have specific characters</a>__.
@@ -573,11 +573,13 @@ Check an URI is valid according to **RFC-3986**.
     - `URI_MISSING_PATH`
     - `URI_INVALID_PATH`
     - `URI_INVALID_HOST`
-    - `URI_INVALID_PERCENT_ENCODING`
     - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
-    - `URI_INVALID_CHAR`
+    - `URI_INVALID_PATH_CHAR`
+    - `URI_INVALID_QUERY_CHAR`
+    - `URI_INVALID_FRAGMENT_CHAR`
+    - `URI_INVALID_PERCENT_ENCODING`
     - `URI_INVALID_SITEMAP_ENCODING`
 
 <br/>
@@ -592,7 +594,9 @@ checkURI('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALID_PE
 checkURI('fôo:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
 checkURI('foo://üser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkURI('foo://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
-checkURI('foo://bar.com/°'); // throws URIError with code URI_INVALID_CHAR
+checkURI('foo://bar.com/°'); // throws URIError with code URI_INVALID_PATH_CHAR
+checkURI('foo://bar.com/over/there?quêry=5'); // throws URIError with code URI_INVALID_QUERY_CHAR
+checkURI('foo://bar.com/over/there?query=5#anch#r'); // throws URIError with code URI_INVALID_FRAGMENT_CHAR
 
 checkURI('foo://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose');
 // {
@@ -619,7 +623,7 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
 
 **Rules**:
 1. scheme must be `http` or `HTTP`;
-2. authority is not missing.
+2. authority is required.
 
 <br/>
 
@@ -654,7 +658,6 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
     - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
-    - `URI_INVALID_CHAR`
     - `URI_MISSING_AUTHORITY`
 
 <br/>
@@ -669,7 +672,7 @@ checkHttpURL('http://www.bar.baz/foo%2') // throws URIError with code URI_INVALI
 checkHttpURL('hôtp:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
 checkHttpURL('http://üser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkHttpURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
-checkHttpURL('http://bar.com/°'); // throws URIError with code URI_INVALID_CHAR
+checkHttpURL('http://bar.com/°'); // throws URIError with code ???
 checkHttpURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
 
 checkHttpURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose');
@@ -747,9 +750,7 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
     - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
-    - `URI_INVALID_CHAR`
     - `URI_MISSING_AUTHORITY`
-    - `URI_INVALID_SITEMAP_CHAR`
 
 <br/>
 
@@ -763,9 +764,9 @@ checkHttpSitemapURL('http://www.bar.baz/foo%2') // throws URIError with code URI
 checkHttpSitemapURL('hôtp:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
 checkHttpSitemapURL('http://üser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkHttpSitemapURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
-checkHttpSitemapURL('http://bar.com/°'); // throws URIError with code URI_INVALID_CHAR
+checkHttpSitemapURL('http://bar.com/°'); // throws URIError with code ???
 checkHttpSitemapURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
-checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret&catch=rabbits#nose'); // throws URIError with code URI_INVALID_SITEMAP_CHAR
+checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret&catch=rabbits#nose'); // throws URIError with code ???
 
 checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferret&amp;catch=rabbits#nose');
 // {
@@ -1238,7 +1239,7 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
-    <td rowspan="16"><i>URIError</i></td>
+    <td rowspan="18"><i>URIError</i></td>
   </tr>
 
   <tr>
@@ -1302,8 +1303,8 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
-    <td>URI_INVALID_CHAR</td>
-    <td>URI contains an invalid character</td>
+    <td>URI_INVALID_USERINFO_CHAR</td>
+    <td>URI userinfo contains an invalid character</td>
     <td><code>lib/checkers</code></td>
   </tr>
 
@@ -1322,18 +1323,6 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   <tr>
     <td>URI_INVALID_FRAGMENT_CHAR</td>
     <td>URI fragment contains an invalid character</td>
-    <td><code>lib/checkers</code></td>
-  </tr>
-
-  <tr>
-    <td>URI_INVALID_USERINFO_CHAR</td>
-    <td>URI userinfo contains an invalid character</td>
-    <td><code>lib/checkers</code></td>
-  </tr>
-
-  <tr>
-    <td>URI_INVALID_SITEMAP_CHAR</td>
-    <td>URI contains an invalid sitemap character</td>
     <td><code>lib/checkers</code></td>
   </tr>
 

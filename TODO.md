@@ -1,7 +1,7 @@
 # TODO
 
 tests:
-- continue at checkers/pathqf
+- continue at checkers/checkURI
 - revoir tous les tests et descriptions de fonctions / README
 
 doc:
