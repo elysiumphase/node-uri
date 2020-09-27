@@ -623,7 +623,8 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
 
 **Rules**:
 1. scheme must be `http` or `HTTP`;
-2. authority is required.
+2. authority is required;
+3. URL must be less than 2048 characters.
 
 <br/>
 
@@ -654,11 +655,17 @@ This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__
     - `URI_MISSING_PATH`
     - `URI_INVALID_PATH`
     - `URI_INVALID_HOST`
-    - `URI_INVALID_PERCENT_ENCODING`
     - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
+    - `URI_INVALID_PATH_CHAR`
+    - `URI_INVALID_QUERY_CHAR`
+    - `URI_INVALID_FRAGMENT_CHAR`
+    - `URI_INVALID_PERCENT_ENCODING`
+    - `URI_INVALID_SITEMAP_ENCODING`
+    - `URI_INVALID_SCHEME`
     - `URI_MISSING_AUTHORITY`
+    - `URI_MAX_LENGTH_URL`
 
 <br/>
 
@@ -1335,6 +1342,12 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   <tr>
     <td>URI_INVALID_SITEMAP_ENCODING</td>
     <td>URI contains an invalid sitemap escape code</td>
+    <td><code>lib/checkers</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_MAX_LENGTH_URL</td>
+    <td>Maximum URL allowed length of 2048 characters has been reached</td>
     <td><code>lib/checkers</code></td>
   </tr>
 

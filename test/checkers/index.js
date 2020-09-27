@@ -1,4 +1,5 @@
 const { expect } = require('../Common');
+const { maxLengthURL } = require('../../lib/config');
 const {
   checkPercentEncoding,
   checkSitemapEncoding,
@@ -641,7 +642,7 @@ describe('#checkers', function() {
       expect(() => checkURI('urn:')).to.not.throw();
     });
 
-    it('should not throw an uri error if uri has valid sitemap encodings', function() {
+    it('should not throw an uri error if uri has valid sitemap encodings when sitemap is true', function() {
       expect(() => checkURI('foo://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
       expect(() => checkURI('foo://example.com:8042/it&apos;over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
       expect(() => checkURI('foo://example.com:8042/itover/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
@@ -684,364 +685,416 @@ describe('#checkers', function() {
     });
   });
 
-  // context('when using checkHttpURL that uses checkURI', function() {
-  //   // SAME TESTS FROM checkURISyntax to check consistency
-  //   it('should throw an uri error when uri is not a string', function() {
-  //     expect(() => checkHttpURL()).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(undefined)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(null)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(NaN)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL([])).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(new Error('error'))).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(5)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(true)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL(false)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //     expect(() => checkHttpURL({})).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
-  //   });
-  //
-  //   it('should throw an uri error when uri has no scheme', function() {
-  //     // scheme cannot be an empty string following parseURI behavior
-  //     expect(() => checkHttpURL('/Users/dir/file.js')).to.throw(URIError).with.property('code', 'URI_MISSING_SCHEME');
-  //     expect(() => checkHttpURL('://example.com')).to.throw(URIError).with.property('code', 'URI_MISSING_SCHEME');
-  //     expect(() => checkHttpURL(':')).to.throw(URIError).with.property('code', 'URI_MISSING_SCHEME');
-  //   });
-  //
-  //   // if authority is present following parseURI behavior path will always be at least empty or start with /
-  //
-  //   it('should throw an uri error when authority is not present and path starts with //', function() {
-  //     expect(() => checkHttpURL('http://example.co.jp//path')).to.not.throw();
-  //     expect(() => checkHttpURL('http:////path')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH');
-  //   });
-  //
-  //   it('should not throw if an uri has at least a scheme and a path', function() {
-  //     expect(() => checkHttpURL('http://example.com')).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com/path')).to.not.throw();
-  //   });
-  //
-  //   // SAME TESTS FROM checkURI to check consistency
-  //   it('should throw an uri error when scheme has invalid chars', function() {
-  //     expect(() => checkHttpURL('htép://example.com')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME_CHAR');
-  //     expect(() => checkHttpURL('ht°p://example.com')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME_CHAR');
-  //   });
-  //
-  //   it('should throw an uri error when userinfo has invalid characters', function() {
-  //     expect(() => checkHttpURL('http://usér:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
-  //     expect(() => checkHttpURL('http://us€r:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
-  //     expect(() => checkHttpURL('http://user:pa[ss@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
-  //     expect(() => checkHttpURL('http://usEr:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
-  //     expect(() => checkHttpURL('http://usEr:pasS@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
-  //   });
-  //
-  //   it('should throw an uri error when userinfo has invalid percent encodings', function() {
-  //     expect(() => checkHttpURL('http://user%:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://user%20%2z:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://user:%acpass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://user:pass%@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://user:pass%a@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //   });
-  //
-  //   it('should throw an uri error when host is not a valid ip', function() {
-  //     expect(() => checkHttpURL('http://999.999.999.999:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //     expect(() => checkHttpURL('http://3ffe:b00::1::a/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //   });
-  //
-  //   it('should throw an uri error when host is not a valid domain', function() {
-  //     expect(() => checkHttpURL('http://aaaaaa:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //     expect(() => checkHttpURL('http://com.com/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //     expect(() => checkHttpURL('http://example..com/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //     expect(() => checkHttpURL('http://xn--iñvalid.com/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //     expect(() => checkHttpURL('http:///path', { web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
-  //   });
-  //
-  //   it('should throw an uri error when port is not a number', function() {
-  //     expect(() => checkHttpURL('http://example.com:80g42/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
-  //   });
-  //
-  //   it('should throw an uri error when invalid characters are found following scheme://authority', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/thère?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/ôver/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over\\there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/\\over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over^there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/{over}/the`re?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over|there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over}/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/{there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
-  //   });
-  //
-  //   it('should throw an uri error when invalid percent encodings are found following scheme://authority', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there%20%20%?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there%2?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there%Aa?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/%2cover/there%20%20?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/%a2over/there%20%20%?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/%gover/there%20%20%?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/%20over/there%20%20%?name=ferret%#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/%20over/there%20%20%?name=ferret%%#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there%20%20%?name=f%erret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%A')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%ef')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%ac')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%9')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%8c')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%a9')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
-  //   });
-  //
-  //   it('should not throw an uri error when unescaped but allowed sitemap characters are found following scheme://authority if sitemap is false', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/it\'sover/there?name=ferret#nose', { sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it"s%20over/there?name=ferret#nose', { sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&pseudo=superhero#nose', { sitemap: false })).to.not.throw();
-  //   });
-  //
-  //   it('should throw an uri error when unescaped sitemap characters are found following scheme://authority if sitemap is true', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/it\'sover/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/it"s%20over/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/&quotthere?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over&am/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&apo#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&g#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&l;#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_CHAR');
-  //   });
-  //
-  //   // ADDITIONAL TESTS
-  //   it('should not throw an uri error if a http sitemap uri is valid and sitemap is true', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it&apos;sover/there?name=ferret#nose', { sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it&quot;sover/there?name=ferret#nose', { sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/&lt;over&gt;/there?name=ferret#nose', { sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose', { sitemap: true })).to.not.throw();
-  //   });
-  //
-  //   it('should not throw an uri error if a http sitemap uri is valid and sitemap is false', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it&apos;sover/there?name=ferret#nose', { sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it&quot;sover/there?name=ferret#nose', { sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/&lt;over&gt;/there?name=ferret#nose', { sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose', { sitemap: false })).to.not.throw();
-  //   });
-  //
-  //   it('should not throw an uri error if a https sitemap uri is valid when https is true and sitemap is false', function() {
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { https: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/it&apos;sover/there?name=ferret#nose', { https: true, sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/it&quot;sover/there?name=ferret#nose', { https: true, sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/&lt;over&gt;/there?name=ferret#nose', { https: true, sitemap: false })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose', { https: true, sitemap: false })).to.not.throw();
-  //   });
-  //
-  //   it('should not throw an uri error if a https sitemap uri is valid when https and sitemap are true', function() {
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { https: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/it&apos;sover/there?name=ferret#nose', { https: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/it&quot;sover/there?name=ferret#nose', { https: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/&lt;over&gt;/there?name=ferret#nose', { https: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose', { https: true, sitemap: true })).to.not.throw();
-  //   });
-  //
-  //   it('should not throw an uri error if a http or https sitemap uri is valid when web is true', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it&apos;sover/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/it&quot;sover/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/&lt;over&gt;/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/it&apos;sover/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/it&quot;sover/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/&lt;over&gt;/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com:8042/&amp;sover/&gt;there&lt;?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
-  //   });
-  //
-  //   it('should throw an uri error if scheme is not http when no option is provided', function() {
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //   });
-  //
-  //   it('should throw an uri error if scheme is not http when no option is provided', function() {
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //   });
-  //
-  //   it('should throw an uri error if scheme is not http when https and web options are false', function() {
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //   });
-  //
-  //   it('should throw an uri error if authority is null for http, https and sitemap urls', function() {
-  //     expect(() => checkHttpURL('http:isbn:0-486-27557-4')).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: false, web: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { web: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //
-  //     expect(() => checkHttpURL('http:isbn:0-486-27557-4', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: false, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //     expect(() => checkHttpURL('https:isbn:0-486-27557-4', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
-  //   });
-  //
-  //   it('should throw an uri error if scheme is not http when https is false and web is true', function() {
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //   });
-  //
-  //   it('should not throw an uri error when uri is a valid http url', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose')).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com/')).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there?name=ferret')).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com')).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com./')).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com.')).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there#nose')).to.not.throw();
-  //   });
-  //
-  //   it('should throw an uri error if scheme is not https when https is true and web is false', function() {
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //   });
-  //
-  //   it('should throw an uri error if scheme is not https when https is true and web is true', function() {
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //
-  //     expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitempa: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
-  //   });
-  //
-  //   it('should not throw an uri error when uri is a valid https url when https is true', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose'), { https: true }).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com/', { https: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there?name=ferret', { https: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com', { https: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com./', { https: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com.', { https: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there#nose', { https: true })).to.not.throw();
-  //   });
-  //
-  //   it('should not throw an uri error when uri is a valid http or https url when web is true', function() {
-  //     expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://example.com/', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there?name=ferret', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com./', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com.', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there#nose', { web: true })).to.not.throw();
-  //
-  //     expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://example.com/', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there?name=ferret', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com./', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com.', { web: true })).to.not.throw();
-  //     expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there#nose', { web: true })).to.not.throw();
-  //   });
-  //
-  //   it('should return a specific object if no errors were thrown', function() {
-  //     let check = checkHttpURL('http://中文.com:8042/over/there?name=ferret#nose');
-  //     expect(check).to.be.an('object').and.to.have.property('scheme', 'http');
-  //     expect(check).to.be.an('object').and.to.have.property('authority', 'xn--fiq228c.com:8042');
-  //     expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', '中文.com:8042');
-  //     expect(check).to.be.an('object').and.to.have.property('userinfo', null);
-  //     expect(check).to.be.an('object').and.to.have.property('host', 'xn--fiq228c.com');
-  //     expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', '中文.com');
-  //     expect(check).to.be.an('object').and.to.have.property('port', 8042);
-  //     expect(check).to.be.an('object').and.to.have.property('path', '/over/there');
-  //     expect(check).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
-  //     expect(check).to.be.an('object').and.to.have.property('query', 'name=ferret');
-  //     expect(check).to.be.an('object').and.to.have.property('fragment', 'nose');
-  //     expect(check).to.be.an('object').and.to.have.property('valid', true);
-  //
-  //     check = checkHttpURL('https://user:pass@example.com/', { https: true });
-  //     expect(check).to.be.an('object').and.to.have.property('scheme', 'https');
-  //     expect(check).to.be.an('object').and.to.have.property('authority', 'user:pass@example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
-  //     expect(check).to.be.an('object').and.to.have.property('host', 'example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', 'example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('port', null);
-  //     expect(check).to.be.an('object').and.to.have.property('path', '/');
-  //     expect(check).to.be.an('object').and.to.have.property('pathqf', '/');
-  //     expect(check).to.be.an('object').and.to.have.property('query', null);
-  //     expect(check).to.be.an('object').and.to.have.property('fragment', null);
-  //     expect(check).to.be.an('object').and.to.have.property('valid', true);
-  //
-  //     check = checkHttpURL('https://user:pass@example.com/', { web: true });
-  //     expect(check).to.be.an('object').and.to.have.property('scheme', 'https');
-  //     expect(check).to.be.an('object').and.to.have.property('authority', 'user:pass@example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
-  //     expect(check).to.be.an('object').and.to.have.property('host', 'example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', 'example.com');
-  //     expect(check).to.be.an('object').and.to.have.property('port', null);
-  //     expect(check).to.be.an('object').and.to.have.property('path', '/');
-  //     expect(check).to.be.an('object').and.to.have.property('pathqf', '/');
-  //     expect(check).to.be.an('object').and.to.have.property('query', null);
-  //     expect(check).to.be.an('object').and.to.have.property('fragment', null);
-  //     expect(check).to.be.an('object').and.to.have.property('valid', true);
-  //
-  //     check = checkHttpURL('https://中文.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { https: true, sitemap: true });
-  //     expect(check).to.be.an('object').and.to.have.property('scheme', 'https');
-  //     expect(check).to.be.an('object').and.to.have.property('authority', 'xn--fiq228c.com:8042');
-  //     expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', '中文.com:8042');
-  //     expect(check).to.be.an('object').and.to.have.property('userinfo', null);
-  //     expect(check).to.be.an('object').and.to.have.property('host', 'xn--fiq228c.com');
-  //     expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', '中文.com');
-  //     expect(check).to.be.an('object').and.to.have.property('port', 8042);
-  //     expect(check).to.be.an('object').and.to.have.property('path', '/over/there');
-  //     expect(check).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret&amp;pseudo=superhero#nose');
-  //     expect(check).to.be.an('object').and.to.have.property('query', 'name=ferret&amp;pseudo=superhero');
-  //     expect(check).to.be.an('object').and.to.have.property('fragment', 'nose');
-  //     expect(check).to.be.an('object').and.to.have.property('valid', true);
-  //   });
-  // });
-  //
+  context('when using checkHttpURL that uses checkURI', function() {
+    // SAME TESTS FROM checkURISyntax to check consistency
+    it('should throw an uri error when uri is not a string', function() {
+      expect(() => checkHttpURL()).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(undefined)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(null)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(NaN)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL([])).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(new Error('error'))).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(5)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(true)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(false)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL({})).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+    });
+
+    it('should throw an uri error when uri has no scheme', function() {
+      // scheme cannot be an empty string following parseURI behavior
+      expect(() => checkHttpURL('/Users/dir/file.js')).to.throw(URIError).with.property('code', 'URI_MISSING_SCHEME');
+      expect(() => checkHttpURL('://example.com')).to.throw(URIError).with.property('code', 'URI_MISSING_SCHEME');
+      expect(() => checkHttpURL(':')).to.throw(URIError).with.property('code', 'URI_MISSING_SCHEME');
+    });
+
+    // if authority is present following parseURI behavior path will always be at least empty or start with /
+
+    it('should throw an uri error when authority is not present and path starts with //', function() {
+      expect(() => checkHttpURL('http://example.co.jp//path')).to.not.throw();
+      expect(() => checkHttpURL('http:////path')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH');
+    });
+
+    it('should not throw if an uri has at least a scheme and a path', function() {
+      expect(() => checkHttpURL('http://example.com')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com/path')).to.not.throw();
+    });
+
+    // SAME TESTS FROM checkURI to check consistency
+    it('should throw an uri error when scheme has invalid chars', function() {
+      expect(() => checkHttpURL('htép://example.com')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME_CHAR');
+      expect(() => checkHttpURL('ht°p://example.com')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME_CHAR');
+    });
+
+    it('should throw an uri error when uri has invalid percent encodings', function() {
+      expect(() => checkHttpURL('http://www.bar.baz/foo%2')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://www.bar.baz/foo%2éd')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+    });
+
+    it('should throw an uri error when userinfo has invalid characters', function() {
+      expect(() => checkHttpURL('http://usér:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
+      expect(() => checkHttpURL('http://us€r:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
+      expect(() => checkHttpURL('http://user:pa[ss@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
+    });
+
+    it('should throw an uri error when userinfo has invalid percent encodings', function() {
+      expect(() => checkHttpURL('http://user%:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://user%20%2z:pass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://user:%acpass@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://user:pass%@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://user:pass%a@example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+    });
+
+    it('should throw an uri error when userinfo has invalid sitemap encodings when sitemap is true', function() {
+      expect(() => checkHttpURL('http://user&pass@example.com:8042/over/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkHttpURL('http://user&amp:pass@example.com:8042/over/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkHttpURL('http://user&apos:pass@example.com:8042/over/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+    });
+
+    it('should throw an uri error when userinfo has invalid sitemap characters when sitemap is true', function() {
+      expect(() => checkHttpURL('http://user\'pass@example.com:8042/over/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
+      expect(() => checkHttpURL('http://user*pass@example.com:8042/over/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_USERINFO_CHAR');
+    });
+
+    it('should throw an uri error when host is not a valid ip', function() {
+      expect(() => checkHttpURL('http://999.999.999.999:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
+      expect(() => checkHttpURL('http://[3ffe:b00::1::a]/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
+    });
+
+    it('should throw an uri error when host is not a valid domain', function() {
+      expect(() => checkHttpURL('http://aaaaaa:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
+      expect(() => checkHttpURL('http://com.com/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
+      expect(() => checkHttpURL('http://example..com/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
+    });
+
+    it('should throw an uri error when port is not a number', function() {
+      expect(() => checkHttpURL('http://example.com:80g42/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+    });
+
+    it('should throw an uri error if path has invalid characters', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/thère?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/ôver/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over\\there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/\\over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over^there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/{over}/the`re?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over|there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over}/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over/{there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+    });
+
+    it('should throw an uri error if path has invalid sitemap characters when sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/th\'re?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/*ver/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_PATH_CHAR');
+    });
+
+    it('should throw an uri error if path has invalid sitemap encodings when sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/th&ampre?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/&apo;ver/there?name=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+    });
+
+    it('should throw an uri error if query has invalid characters', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=férret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_QUERY_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=fe[rret]#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_QUERY_CHAR');
+    });
+
+    it('should throw an uri error if query has invalid sitemap characters when sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/thre?n\'ame=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_QUERY_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?n*me=ferret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_QUERY_CHAR');
+    });
+
+    it('should throw an uri error if query has invalid sitemap encodings when sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&am;#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=fer&apo;ret#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+    });
+
+    it('should throw an uri error if fragment has invalid characters', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nôse')).to.throw(URIError).with.property('code', 'URI_INVALID_FRAGMENT_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nos[e')).to.throw(URIError).with.property('code', 'URI_INVALID_FRAGMENT_CHAR');
+    });
+
+    it('should throw an uri error if fragment has invalid sitemap characters when sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/thre?name=ferret#no\'se', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_FRAGMENT_CHAR');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?nme=ferret#n*se', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_FRAGMENT_CHAR');
+    });
+
+    it('should throw an uri error if fragment has invalid sitemap encodings when sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nos&am;e', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#n&apo;ose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SITEMAP_ENCODING');
+    });
+
+    it('should throw an uri error when invalid percent encodings are found in path, query or fragment', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there%20%20%?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there%2?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there%Aa?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/%2cover/there%20%20?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/%a2over/there%20%20%?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/%gover/there%20%20%?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/%20over/there%20%20%?name=ferret%#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/%20over/there%20%20%?name=ferret%%#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there%20%20%?name=f%erret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%A')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%ef')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%ac')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%9')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%8c')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose%a9')).to.throw(URIError).with.property('code', 'URI_INVALID_PERCENT_ENCODING');
+    });
+
+    it('should not throw an uri error when unescaped but allowed sitemap characters are found in path, query or fragment if sitemap is false', function() {
+      expect(() => checkHttpURL('http://example.com:8042/it\'sover/there?name=ferret#nose', { sitemap: false })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/its%20over/there?nam*e=ferret#nose', { sitemap: false })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&pseudo=superhero#no*se', { sitemap: false })).to.not.throw();
+    });
+
+    it('should not throw an uri error if an uri is valid', function() {
+      expect(() => checkURI('http://example.com')).to.not.throw();
+      expect(() => checkURI('http://example.co.jp')).to.not.throw();
+      expect(() => checkURI('http://example.co.jp.')).to.not.throw();
+      expect(() => checkURI('http://example.co.jp.')).to.not.throw();
+      expect(() => checkURI('http://example.com.:8042/over/')).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there')).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret')).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret#nose')).to.not.throw();
+      expect(() => checkURI('http://user:pass@example.com:8042/over/there?name=ferret#nose')).to.not.throw();
+    });
+
+    it('should not throw an uri error if uri has valid sitemap encodings when sitemap is true', function() {
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/it&apos;over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/itover/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose&amp;eyes', { sitemap: true })).to.not.throw();
+      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose&apos;', { sitemap: true })).to.not.throw();
+    });
+
+    // ADDITIONAL TESTS
+    it('should not throw an uri error if a http sitemap uri is valid and sitemap is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/it&apos;sover/there?name=ferret#nose', { sitemap: true })).to.not.throw();
+    });
+
+    it('should not throw an uri error if a http sitemap uri is valid and sitemap is false', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/it&apos;sover/there?name=ferret#nose', { sitemap: false })).to.not.throw();
+    });
+
+    it('should not throw an uri error if a https sitemap uri is valid when https is true and sitemap is false', function() {
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { https: true, sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('https://example.com:8042/it&apos;sover/there?name=ferret#nose', { https: true, sitemap: false })).to.not.throw();
+    });
+
+    it('should not throw an uri error if a https sitemap uri is valid when https and sitemap are true', function() {
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { https: true, sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('https://example.com:8042/it&apos;sover/there?name=ferret#nose', { https: true, sitemap: true })).to.not.throw();
+    });
+
+    it('should not throw an uri error if a http or https sitemap uri is valid when web is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { web: true, sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/it&apos;sover/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
+
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { web: true, sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('https://example.com:8042/it&apos;sover/there?name=ferret#nose', { web: true, sitemap: true })).to.not.throw();
+    });
+
+    it('should throw an uri error if scheme is not http when no option is provided', function() {
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should throw an uri error if scheme is not http when no option is provided', function() {
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should throw an uri error if scheme is not http when https and web options are false', function() {
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should throw an uri error if authority is null for http, https and sitemap urls', function() {
+      expect(() => checkHttpURL('http:isbn:0-486-27557-4')).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: false, web: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { web: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+
+      expect(() => checkHttpURL('http:isbn:0-486-27557-4', { sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { https: false, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+      expect(() => checkHttpURL('https:isbn:0-486-27557-4', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_MISSING_AUTHORITY');
+    });
+
+    it('should throw an uri error if scheme is not http when https is false and web is true', function() {
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { https: false, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should not throw an uri error when uri is a valid http url', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com/')).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there?name=ferret')).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com')).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com./')).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com.')).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there#nose')).to.not.throw();
+    });
+
+    it('should throw an uri error if scheme is not https when https is true and web is false', function() {
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: false })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: false, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should throw an uri error if scheme is not https when https is true and web is true', function() {
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+
+      expect(() => checkHttpURL('foo://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('ftp://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('f://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('c://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { https: true, web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should throw an uri error if url is more than the maximal allowed length', function() {
+      expect(() => checkHttpURL(`http://example.com:8042/${'path'.repeat(maxLengthURL + 1)}?name=ferret#nose`)).to.throw(URIError).with.property('code', 'URI_MAX_LENGTH_URL');
+    });
+
+    it('should not throw an uri error when uri is a valid https url when https is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose'), { https: true }).to.not.throw();
+      expect(() => checkHttpURL('https://example.com/', { https: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there?name=ferret', { https: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com', { https: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com./', { https: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com.', { https: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there#nose', { https: true })).to.not.throw();
+    });
+
+    it('should not throw an uri error when uri is a valid http or https url when web is true', function() {
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com/', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there?name=ferret', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com./', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com.', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there#nose', { web: true })).to.not.throw();
+
+      expect(() => checkHttpURL('https://example.com:8042/over/there?name=ferret#nose', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('https://example.com/', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there?name=ferret', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com./', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com.', { web: true })).to.not.throw();
+      expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there#nose', { web: true })).to.not.throw();
+    });
+
+    it('should return a specific object if no errors were thrown', function() {
+      let check = checkHttpURL('http://中文.com:8042/over/there?name=ferret#nose');
+      expect(check).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(check).to.be.an('object').and.to.have.property('authority', 'xn--fiq228c.com:8042');
+      expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', '中文.com:8042');
+      expect(check).to.be.an('object').and.to.have.property('userinfo', null);
+      expect(check).to.be.an('object').and.to.have.property('host', 'xn--fiq228c.com');
+      expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', '中文.com');
+      expect(check).to.be.an('object').and.to.have.property('port', 8042);
+      expect(check).to.be.an('object').and.to.have.property('path', '/over/there');
+      expect(check).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
+      expect(check).to.be.an('object').and.to.have.property('query', 'name=ferret');
+      expect(check).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(check).to.be.an('object').and.to.have.property('href', 'http://xn--fiq228c.com:8042/over/there?name=ferret#nose');
+      expect(check).to.be.an('object').and.to.have.property('valid', true);
+
+      check = checkHttpURL('https://user:pass@example.com/', { https: true });
+      expect(check).to.be.an('object').and.to.have.property('scheme', 'https');
+      expect(check).to.be.an('object').and.to.have.property('authority', 'user:pass@example.com');
+      expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@example.com');
+      expect(check).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(check).to.be.an('object').and.to.have.property('host', 'example.com');
+      expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', 'example.com');
+      expect(check).to.be.an('object').and.to.have.property('port', null);
+      expect(check).to.be.an('object').and.to.have.property('path', '/');
+      expect(check).to.be.an('object').and.to.have.property('pathqf', '/');
+      expect(check).to.be.an('object').and.to.have.property('query', null);
+      expect(check).to.be.an('object').and.to.have.property('fragment', null);
+      expect(check).to.be.an('object').and.to.have.property('href', 'https://user:pass@example.com/');
+      expect(check).to.be.an('object').and.to.have.property('valid', true);
+
+      check = checkHttpURL('https://user:pass@example.com/', { web: true });
+      expect(check).to.be.an('object').and.to.have.property('scheme', 'https');
+      expect(check).to.be.an('object').and.to.have.property('authority', 'user:pass@example.com');
+      expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@example.com');
+      expect(check).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(check).to.be.an('object').and.to.have.property('host', 'example.com');
+      expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', 'example.com');
+      expect(check).to.be.an('object').and.to.have.property('port', null);
+      expect(check).to.be.an('object').and.to.have.property('path', '/');
+      expect(check).to.be.an('object').and.to.have.property('pathqf', '/');
+      expect(check).to.be.an('object').and.to.have.property('query', null);
+      expect(check).to.be.an('object').and.to.have.property('fragment', null);
+      expect(check).to.be.an('object').and.to.have.property('href', 'https://user:pass@example.com/');
+      expect(check).to.be.an('object').and.to.have.property('valid', true);
+
+      check = checkHttpURL('https://中文.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { https: true, sitemap: true });
+      expect(check).to.be.an('object').and.to.have.property('scheme', 'https');
+      expect(check).to.be.an('object').and.to.have.property('authority', 'xn--fiq228c.com:8042');
+      expect(check).to.be.an('object').and.to.have.property('authorityPunydecoded', '中文.com:8042');
+      expect(check).to.be.an('object').and.to.have.property('userinfo', null);
+      expect(check).to.be.an('object').and.to.have.property('host', 'xn--fiq228c.com');
+      expect(check).to.be.an('object').and.to.have.property('hostPunydecoded', '中文.com');
+      expect(check).to.be.an('object').and.to.have.property('port', 8042);
+      expect(check).to.be.an('object').and.to.have.property('path', '/over/there');
+      expect(check).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret&amp;pseudo=superhero#nose');
+      expect(check).to.be.an('object').and.to.have.property('query', 'name=ferret&amp;pseudo=superhero');
+      expect(check).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(check).to.be.an('object').and.to.have.property('href', 'https://xn--fiq228c.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose');
+      expect(check).to.be.an('object').and.to.have.property('valid', true);
+    });
+  });
+
   // context('when using checkHttpsURL that uses checkHttpURL', function() {
   //   it('should throw an uri error if scheme is not https', function() {
   //     expect(() => checkHttpsURL('foo://example.com:8042/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
