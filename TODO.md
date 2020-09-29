@@ -5,6 +5,7 @@ tests:
 - revoir tous les tests et descriptions de fonctions / README
 
 doc:
+- ajouter le nombre d'assertions à jour
 - ajouter les nouveaux codes d'erreurs pour path, query, fragment
 
 fix:

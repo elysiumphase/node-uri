@@ -1050,10 +1050,9 @@ decodeURIComponentString(); // ''
 decodeURIComponentString(''); // ''
 decodeURIComponentString('AbC'); // 'AbC'
 decodeURIComponentString('AbC', { lowercase: true }); // 'abc'
-decodeURIComponentString('%3C%3E'); // '<>'
-decodeURIComponentString('&apos;&amp;&quot;', { sitemap: true }); // '\'&"'
-decodeURIComponentString('SITE<>maP', { sitemap: true, lowercase: true }); // 'site<>map'
-decodeURIComponentString('SITE&lt;&gt;maP', { sitemap: true }); // 'SITE<>maP'
+decodeURIComponentString('%2A'); // '*'
+decodeURIComponentString('&apos;&amp;%2A', { sitemap: true }); // '\'&*'
+decodeURIComponentString('SITE&amp;maP', { sitemap: true, lowercase: true }); // 'site&map'
 ```
 
 ## decodeURIString(uri, options)
@@ -1063,15 +1062,17 @@ Decode an URI string according to **RFC-3986** with basic checking.
 - scheme is required;
 - path is required, can be empty;
 - port, if any, must be a number;
-- [parseURI](#parseuriuri) prechecked host, will be null if invalid and so does authority.
+- host must be a valid ip or domain name.
 
 **Support**:
 - IDNs: returns URI with its Punydecoded host (Unicode serialization of the domain), if any;
 - lower and upper case.
 
 **Note**:
+- if one of userinfo, path, query or fragment component cannot be decoded, it will be ignored;
 - native function `decodeURI` does not support IDNs and cannot properly work with `encodeURI` since the function is based on an outdated standard;
-- to stay fully **RFC-3986** compliant, scheme and host are put in lowercase.
+- to stay fully **RFC-3986** compliant, scheme and host are put in lowercase;
+- to only use with [encodeURIString](#encodeuristringuri-options).
 
 <br/>
 
@@ -1105,6 +1106,7 @@ decodeURIString('http://xn--iñvalid.com'); // throws URIError with code URI_INV
 decodeURIString('hôtp:bar'); // throws URIError with code URI_INVALID_SCHEME_CHAR
 decodeURIString('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
 
+decodeURIString('http://user%:pass@xn--fiq228c.com/%?query=%E0%A5%90#anch#or'); // 'http://中文.com/?query=ॐ'
 decodeURIString('HTTPS://WWW.xn--fiq228c.COM./Over/There?a=B&b=c#Anchor'); // 'https://www.中文.com./Over/There?a=B&b=c#Anchor'
 decodeURIString('HTTPS://WWW.xn--fiq228c.COM./Over/There?a=B&b=c#Anchor', { lowercase: true }); // 'https://www.中文.com./over/there?a=b&b=c#anchor'
 decodeURIString('foo://us%C3%ABr:p%C3%A2ss@bar.baz:8080/Ov%C3%ABr%20There?%C3%B9=B&b=c#Anch%C3%B4r'); // 'foo://usër:pâss@bar.baz:8080/Ovër There?ù=B&b=c#Anchôr'
@@ -1112,22 +1114,26 @@ decodeURIString('foo://us%C3%ABr:p%C3%A2ss@bar.baz:8080/Ov%C3%ABr%20There?%C3%B9
 
 ## decodeWebURL(uri, options)
 Decode an URI string with basic checking based on **RFC-3986** standard applied to HTTP and HTTPS URLs.
-Uses a fixed `decodeURI` function to be **RFC-3986** compliant. See __[decodeURIString](#decodeuristringuri-options)__.
+
+Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3986** compliant.
 
 **Checked**:
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
 - port, if any, must be a number;
-- [parseURI](#parseuriuri) prechecked host, will be null if invalid and so does authority.
+- host must be a valid ip or domain name;
+- URL must be less than 2048 characters.
 
 **Support**:
 - IDNs: returns URI with its Punydecoded host (Unicode serialization of the domain), if any;
 - lower and upper case.
 
 **Note**:
+- if one of userinfo, path, query or fragment component cannot be decoded, it will be ignored;
 - native function `decodeURI` does not support IDNs and cannot properly work with `encodeURI` since the function is based on an outdated standard;
-- to stay fully **RFC-3986** compliant, scheme and host are put in lowercase.
+- to stay fully **RFC-3986** compliant, scheme and host are put in lowercase;
+- to only use with [encodeWebURL](#encodeweburluri-options).
 
 <br/>
 
@@ -1150,6 +1156,7 @@ Uses a fixed `decodeURI` function to be **RFC-3986** compliant. See __[decodeURI
     - `URI_INVALID_SCHEME`
     - `URI_INVALID_PORT`
     - `URI_MISSING_AUTHORITY`
+    - `URI_MAX_LENGTH_URL`
 
 <br/>
 
@@ -1163,7 +1170,9 @@ decodeWebURL('ftp://bar.com'); // throws URIError with code URI_INVALID_SCHEME
 decodeWebURL('hôtp://bar.com'); // throws URIError with code URI_INVALID_SCHEME
 decodeWebURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
 decodeWebURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
+decodeWebURL(`http://example.com/${'path'.repeat(2040)}`); // throws URIError with code URI_MAX_LENGTH_URL
 
+decodeWebURL('http://user%:pass@xn--fiq228c.com/%?query=%E0%A5%90#anch#or'); // 'http://中文.com/?query=ॐ'
 decodeWebURL('HTTPS://WWW.xn--fiq228c.COM./Over/There?a=B&b=c#Anchor'); // 'https://www.中文.com./Over/There?a=B&b=c#Anchor'
 decodeWebURL('HTTPS://WWW.xn--fiq228c.COM./Over/There?a=B&b=c#Anchor', { lowercase: true }); // 'https://www.中文.com./over/there?a=b&b=c#anchor'
 decodeWebURL('http://us%C3%ABr:p%C3%A2ss@bar.baz:8080/Ov%C3%ABr%20There?%C3%B9=B&b=c#Anch%C3%B4r'); // 'http://usër:pâss@bar.baz:8080/Ovër There?ù=B&b=c#Anchôr'
@@ -1172,12 +1181,15 @@ decodeWebURL('http://us%C3%ABr:p%C3%A2ss@bar.baz:8080/Ov%C3%ABr%20There?%C3%B9=B
 ## decodeSitemapURL(uri, options)
 Decode an URI string with basic checking based on **RFC-3986** standard applied to HTTP and HTTPS URLs and sitemap requirements regarding escape codes to decode.
 
+Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3986** compliant.
+
 **Checked**:
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
 - port, if any, must be a number;
-- [parseURI](#parseuriuri) prechecked host, will be null if invalid and so does authority.
+- host must be a valid ip or domain name;
+- URL must be less than 2048 characters.
 
 **Support**:
 - Sitemap's escape codes, see __[checkHttpSitemapURL](#checkhttpsitemapurluri)__;
@@ -1185,8 +1197,10 @@ Decode an URI string with basic checking based on **RFC-3986** standard applied 
 - lower and upper case.
 
 **Note**:
+- if one of userinfo, path, query or fragment component cannot be decoded, it will be ignored;
 - native function `decodeURI` does not support IDNs and cannot properly work with `encodeURI` since the function is based on an outdated standard;
-- to stay fully **RFC-3986** compliant, scheme and host are put in lowercase.
+- to stay fully **RFC-3986** compliant, scheme and host are put in lowercase;
+- to only use with [encodeSitemapURL](#encodesitemapurluri-options).
 
 <br/>
 
@@ -1210,6 +1224,7 @@ Decode an URI string with basic checking based on **RFC-3986** standard applied 
     - `URI_INVALID_SCHEME`
     - `URI_INVALID_PORT`
     - `URI_MISSING_AUTHORITY`
+    - `URI_MAX_LENGTH_URL`
 
 <br/>
 
@@ -1223,9 +1238,11 @@ decodeSitemapURL('ftp://bar.com'); // throws URIError with code URI_INVALID_SCHE
 decodeSitemapURL('hôtp://bar.com'); // throws URIError with code URI_INVALID_SCHEME
 decodeSitemapURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
 decodeSitemapURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
+decodeSitemapURL(`http://example.com/${'path'.repeat(2040)}`); // throws URIError with code URI_MAX_LENGTH_URL
 
-decodeSitemapURL('http://bar.baz/IT&apos;S%20OVER&lt;there&gt;?a=&quot;b&quot;&amp;c=&quot;d&quot;'); // 'http://bar.baz/IT\'S OVER<there>?a="b"&c="d"'
-decodeSitemapURL('http://bar.baz/IT&apos;S%20OVER&lt;there&gt;?a=&quot;b&quot;&amp;c=&quot;d&quot;', { lowercase: true }); // 'http://bar.baz/it\'s over<there>?a="b"&c="d"'
+decodeSitemapURL('http://user%:pass@xn--fiq228c.com/%?query=%E0%A5%90#anch#or'); // 'http://中文.com/?query=ॐ'
+decodeSitemapURL('HTTP://bar.BAZ/IT&apos;S%20OVER%2Athere%2A?a=b&amp;c=d'); // 'http://bar.baz/IT\'S OVER*there*?a=b&c=d'
+decodeSitemapURL('http://bar.baz/IT&apos;S%20OVER%2Athere%2A?A=b&amp;c=D', { lowercase: true }); // 'http://bar.baz/it\'s over*there*?a=b&c=d'
 ```
 
 ## Errors

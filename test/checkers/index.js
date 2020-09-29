@@ -4,6 +4,7 @@ const {
   checkPercentEncoding,
   checkSitemapEncoding,
   checkComponent,
+  checkSchemeChars,
   checkURISyntax,
   checkURI,
   checkHttpURL,
@@ -367,6 +368,32 @@ describe('#checkers', function() {
 
     it('should not throw an uri error when type is userinfo and string has valid sitemap chars', function() {
       expect(() => checkComponent({ type: 'userinfo', string: allowedSitemapUserinfoChars.replace(/[%&]/g, ''), sitemap: true })).to.not.throw();
+    });
+  });
+
+  context('when using checkSchemeChars', function() {
+    it('should throw an uri error when scheme is missing or not a string', function() {
+      expect(() => checkSchemeChars()).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars(undefined)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars(NaN)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars([])).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars(new Error('error'))).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars(5)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars(true)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars(false)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should throw an uri error when scheme is the empty string', function() {
+      expect(() => checkSchemeChars('')).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+      expect(() => checkSchemeChars('', 0)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME');
+    });
+
+    it('should not throw an uri error when scheme length parameter is 0 and scheme is  not empty', function() {
+      expect(() => checkSchemeChars('http', 0)).to.not.throw();
+    });
+
+    it('should throw an uri error when scheme has invalid characters', function() {
+      expect(() => checkSchemeChars(disallowedSchemeChars)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME_CHAR');
     });
   });
 
@@ -848,25 +875,25 @@ describe('#checkers', function() {
     });
 
     it('should not throw an uri error if an uri is valid', function() {
-      expect(() => checkURI('http://example.com')).to.not.throw();
-      expect(() => checkURI('http://example.co.jp')).to.not.throw();
-      expect(() => checkURI('http://example.co.jp.')).to.not.throw();
-      expect(() => checkURI('http://example.co.jp.')).to.not.throw();
-      expect(() => checkURI('http://example.com.:8042/over/')).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there')).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret')).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret#nose')).to.not.throw();
-      expect(() => checkURI('http://user:pass@example.com:8042/over/there?name=ferret#nose')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com')).to.not.throw();
+      expect(() => checkHttpURL('http://example.co.jp')).to.not.throw();
+      expect(() => checkHttpURL('http://example.co.jp.')).to.not.throw();
+      expect(() => checkHttpURL('http://example.co.jp.')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com.:8042/over/')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret')).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret#nose')).to.not.throw();
+      expect(() => checkHttpURL('http://user:pass@example.com:8042/over/there?name=ferret#nose')).to.not.throw();
     });
 
     it('should not throw an uri error if uri has valid sitemap encodings when sitemap is true', function() {
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/it&apos;over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/itover/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose&amp;eyes', { sitemap: true })).to.not.throw();
-      expect(() => checkURI('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose&apos;', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/it&apos;over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/itover/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose&amp;eyes', { sitemap: true })).to.not.throw();
+      expect(() => checkHttpURL('http://example.com:8042/over/there?name=ferret&amp;pseudo=superhero#nose&apos;', { sitemap: true })).to.not.throw();
     });
 
     // ADDITIONAL TESTS
