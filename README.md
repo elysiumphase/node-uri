@@ -35,7 +35,7 @@
   - [encodeURIComponentString(component, options)](#encodeuricomponentstringcomponent-options)
   - [encodeURIString(uri, options)](#encodeuristringuri-options)
   - [encodeWebURL(uri, options)](#encodeweburluri-options)
-  - [encodeSitemapURL(uri, options)](#encodesitemapurluri-options)
+  - [encodeSitemapURL(uri)](#encodesitemapurluri)
   - [decodeURIComponentString(component, options)](#decodeuricomponentstringcomponent-options)
   - [decodeURIString(uri, options)](#decodeuristringuri-options)
   - [decodeWebURL(uri, options)](#decodeweburluri-options)
@@ -384,7 +384,7 @@ Test a label is a valid domain label according to **RFC-1034**.
 
 > "Note that while upper and lower case letters are allowed in domain names, no significance is attached to the case.  That is, two names with the same spelling but different case are to be treated as if identical."
 
-By convention uppercased domain name will be considered invalid.
+By convention uppercased domain label will be considered invalid.
 
 **Rules**:
 1. "*Labels must be 63 characters or less.*";
@@ -429,12 +429,13 @@ Test a name is a valid domain according to **RFC-1034**.
 Supports Fully-Qualified Domain Name (FQDN) and Internationalized Domain Name (IDN).
 
 **Rules**:
-1. "*[...] the total number of octets that represent a domain name (i.e., the sum of all label octets and label lengths) is limited to 255.*";
-2. labels are separated by dots (".");
-3. must have at least one extension label;
-4. must have labels different from each other;
-5. last label can be empty (root label ".");
-6. labels can start with `xn--` for IDNs if the ASCII serialization is a valid Punycode.
+1. __[labels rules apply](isdomainlabellabel)__;
+2. "*[...] the total number of octets that represent a domain name (i.e., the sum of all label octets and label lengths) is limited to 255.*";
+3. labels are separated by dots (".");
+4. must have at least one extension label;
+5. must have labels different from each other;
+6. last label can be empty (root label ".");
+7. labels can start with `xn--` for IDNs if the ASCII serialization is a valid Punycode **and has valid characters**.
 
 <br/>
 
@@ -465,6 +466,7 @@ isDomain('a.b.a'); // false
 isDomain('中文.xn--fiq228c.com'); // false
 isDomain('www.xn--hf.com'); // false
 isDomain(`${'a'.repeat(63)}.${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(63)}.`); // false
+isDomain('xn--\'-6xd.com') // false even though xn--'-6xd is a valid Punycode for ॐ but has an invalid character
 ```
 
 ## isIP(ip)
@@ -713,15 +715,17 @@ This function uses *checkHttpURL* to __[check URI provided is valid](#checkhttpu
 **Rules**:
 1. scheme must be `http` or `HTTP`;
 2. authority is required;
-3. specific characters are escaped;
-4. URL must be less than 2048 characters.
+3. specific characters must be escaped;
+4. can only contain lowercase characters;
+5. URL must be less than 2048 characters.
 
-**Valid URI characters to be escaped in a sitemap URL **:
+**Valid URI characters to be escaped or percent-encoded in a sitemap URL **:
 
 | Character    | Value | Escape Code |
 | :----------- |:-----:| :---------: |
 | Ampersand    | `&`   | `&amp;`     |
 | Single Quote | `'`   | `&apos;`    |
+| Asterisk     | `*`   | `%2A`       |
 
 <br/>
 
@@ -811,12 +815,23 @@ Check an URI is a valid HTTP or HTTPS URL. Same behavior than __[checkHttpURL](#
 Check an URI is a valid HTTP or HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme can be `http`/`HTTP` or `https`/`HTTPS`.
 
 ## encodeURIComponentString(component, options)
-Encode an URI component according to **RFC-3986** with Sitemap entities support.
+Encode an URI component according to **RFC-3986**.
+
+**Support**:
+- Sitemap's special characters, see __[checkHttpSitemapURL](#checkhttpsitemapurluri)__;
+- lower and upper case.
 
 **Note**:
-- native function `encodeURIComponent` encodes string according to **RFC-2396** which is outdated;
-- characters that should not be percent-encoded in **RFC-3986** are: `[]`;
-- the empty string is returned if unable to encode.
+- only `userinfo`, `path`, `query` and `fragment` components can be encoded with specific rules for each type regarding valid characters (**RFC-3986**);
+- `scheme` and `authority` (host and port) can never have escaped or percent-encoded characters;
+- the empty string is returned if unable to encode;
+- __[sitemap characters](#checkhttpsitemapurluri)__ must be in lowercase and escaped for XML sitemap URLs.
+
+<br/>
+
+**Generic syntax**:
+
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
@@ -828,6 +843,11 @@ Encode an URI component according to **RFC-3986** with Sitemap entities support.
 
   - `component` **<String\>**
   - `options` **<Object\>**:
+    - `type` **<String\>** The component type. If no type is provided native function *encodeURIComponent* will be used to encode each character. *Default*: `none` One of:
+      - `userinfo`
+      - `path`
+      - `query`
+      - `fragment`
     - `lowercase` **<Boolean\>** Whether the component should be returned in lowercase. *Default*: `false`
     - `sitemap` **<Boolean\>** Whether to escape Sitemap's special characters. See __[checkHttpSitemapURL](#checkhttpsitemapurluri)__.
   - Returns: **<String\>**
@@ -838,11 +858,19 @@ Encode an URI component according to **RFC-3986** with Sitemap entities support.
 ```javascript
 encodeURIComponentString(); // ''
 encodeURIComponentString(''); // ''
+encodeURIComponentString('cômpön€nt'); // 'c%C3%B4mp%C3%B6n%E2%82%ACnt'
 encodeURIComponentString('AbC'); // 'AbC'
 encodeURIComponentString('AbC', { lowercase: true }); // 'abc'
-encodeURIComponentString('<>'); // '%3C%3E'
-encodeURIComponentString('<>', { sitemap: true }); // '&lt;&gt;'
-encodeURIComponentString('SITE<>maP', { sitemap: true, lowercase: true }); // 'site&lt;&gt;map'
+encodeURIComponentString('*'); // '*'
+encodeURIComponentString('*', { sitemap: true }); // '%2A'
+
+// it is highly recommended to use a component type
+encodeURIComponentString('A#/?@[]&\'*'); // 'A%23%2F%3F%40%5B%5D%26\'*' (native function, outdated standard)
+encodeURIComponentString('A#/?@[]&\'*', { type: 'userinfo' }); // 'A%23%2F%3F%40%5B%5D&\'*' (RFC-3986 characters in userinfo)
+encodeURIComponentString('A#/?@[]&\'*', { type: 'path' }); // 'A%23/%3F@%5B%5D&\'*'
+encodeURIComponentString('A#/?@[]&\'*', { type: 'query' }); // 'A%23/?@%5B%5D&\'*'
+encodeURIComponentString('A#/?@[]&\'*', { type: 'fragment' }); // 'A%23/?@%5B%5D&\'*'
+encodeURIComponentString('A#/?@[]&\'*', { type: 'fragment', sitemap: true }); // 'a%23/?@%5B%5D&amp;&apos;%2A'
 ```
 
 ## encodeURIString(uri, options)
@@ -852,16 +880,25 @@ Encode an URI string according to **RFC-3986** with basic checking.
 - scheme is required;
 - path is required, can be empty;
 - port, if any, must be a number;
-- [parseURI](#parseuriuri) prechecked host, will be null if invalid and so does authority.
+- host must be a valid IP or domain name.
 
 **Support**:
 - IDNs: returns URI with its Punycode host, if any;
 - lower and upper case.
 
 **Note**:
+- only `userinfo`, `path`, `query` and `fragment` can be percent-encoded;
 - native function `encodeURI` encodes string according to **RFC-2396** which is outdated;
-- characters that should not be percent-encoded in RFC-3986 are: `"[]`;
+- native function `encodeURI` also encodes scheme and host that cannot have
+  percend-encoded characters;
+- characters that should not be percent-encoded in **RFC-3986** are `[]` to represent IPv6 host;
 - to stay fully **RFC-3986** compliant, scheme and host are put in lowercase.
+
+<br/>
+
+**Generic syntax**:
+
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
@@ -902,23 +939,34 @@ encodeURIString('foo://usër:pâss@bar.baz:8080/Ovër There?ù=B&b=c#Anchôr'); 
 
 ## encodeWebURL(uri, options)
 Encode an URI string with basic checking based on **RFC-3986** standard applied to HTTP and HTTPS URLs.
-Uses a fixed `encodeURI` function to be **RFC-3986** compliant. See __[encodeURIString](#encodeuristringuri-options)__.
+
+Uses __[a fixed encodeURI function](#encodeuristringuri-options)__ to be **RFC-3986** compliant.
 
 **Checked**:
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
 - port, if any, must be a number;
-- [parseURI](#parseuriuri) prechecked host, will be null if invalid and so does authority.
+- host must be a valid IP or domain name;
+- URL must be less than 2048 characters.
 
 **Support**:
 - IDNs: returns URL with its Punycode host, if any;
 - lower and upper case.
 
 **Note**:
+- only `userinfo`, `path`, `query` and `fragment` can be percent-encoded;
 - native function `encodeURI` encodes string according to **RFC-2396** which is outdated;
-- characters that should not be percent-encoded in **RFC-3986** are: `"[]`;
+- native function `encodeURI` also encodes scheme and host that cannot have
+  percend-encoded characters;
+- characters that should not be percent-encoded in **RFC-3986** are `[]` to represent IPv6 host;
 - to stay fully **RFC-3986** compliant, scheme and host are put in lowercase.
+
+<br/>
+
+**Generic syntax**:
+
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
@@ -939,9 +987,9 @@ Uses a fixed `encodeURI` function to be **RFC-3986** compliant. See __[encodeURI
     - `URI_INVALID_PATH`
     - `URI_INVALID_HOST`
     - `URI_INVALID_SCHEME`
-    - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_PORT`
     - `URI_MISSING_AUTHORITY`
+    - `URI_MAX_LENGTH_URL`
 
 <br/>
 
@@ -955,32 +1003,44 @@ encodeWebURL('ftp://bar.baz'); // throws URIError with code URI_INVALID_SCHEME
 encodeWebURL('hôtp://bar.baz'); // throws URIError with code URI_INVALID_SCHEME
 encodeWebURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
 encodeWebURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
+encodeWebURL(`http://example.com/${'path'.repeat(2040)}`); // throws URIError with code URI_MAX_LENGTH_URL
 
 encodeWebURL('HTTPS://WWW.中文.COM./Over/There?a=B&b=c#Anchor'); // 'https://www.xn--fiq228c.com./Over/There?a=B&b=c#Anchor'
 encodeWebURL('HTTPS://WWW.中文.COM./Over/There?a=B&b=c#Anchor', { lowercase: true }); // 'https://www.xn--fiq228c.com./over/there?a=b&b=c#anchor'
 encodeWebURL('http://usër:pâss@bar.baz:8080/Ovër There?ù=B&b=c#Anchôr'); // 'http://us%C3%ABr:p%C3%A2ss@bar.baz:8080/Ov%C3%ABr%20There?%C3%B9=B&b=c#Anch%C3%B4r'
 ```
 
-## encodeSitemapURL(uri, options)
-Encode an URI string with basic checking based on **RFC-3986** standard applied to HTTP and HTTPS URLs and sitemap requirements regarding special entities to escape.
+## encodeSitemapURL(uri)
+Encode an URI string with basic checking based on **RFC-3986** standard applied to HTTP and HTTPS URLs and sitemap requirements regarding special characters to escape.
+
+Uses __[a fixed encodeURI function](#encodeuristringuri-options)__ to be **RFC-3986** compliant.
 
 **Checked**:
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
 - port, if any, must be a number;
-- [parseURI](#parseuriuri) prechecked host, will be null if invalid and so does authority.
+- host must be a valid IP or domain name;
+- URL must be less than 2048 characters.
 
 **Support**:
 - Sitemap's special characters, see __[checkHttpSitemapURL](#checkhttpsitemapurluri)__;
 - IDNs: returns URI with its Punycode host, if any;
-- lower and upper case.
+- characters are automatically put in lowercase.
 
 **Note**:
+- only `userinfo`, `path`, `query` and `fragment` can be percent-encoded;
 - native function `encodeURI` encodes string according to **RFC-2396** which is outdated;
-- characters that should not be percent-encoded in **RFC-3986** are: `"[]`;
-- sitemap characters that should not be percent-encoded are: `"[]<>`;
+- native function `encodeURI` also encodes scheme and host that cannot have
+  percend-encoded characters;
+- characters that should not be percent-encoded in **RFC-3986** are `[]` to represent IPv6 host;
 - to stay fully **RFC-3986** compliant, scheme and host are put in lowercase.
+
+<br/>
+
+**Generic syntax**:
+
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
@@ -991,8 +1051,6 @@ Encode an URI string with basic checking based on **RFC-3986** standard applied 
 <br/>
 
   - `uri` **<String\>**
-  - `options` **<Object\>**:
-    - `lowercase` **<Boolean\>** Whether the uri should be returned in lowercase. *Default*: `false`
   - Returns: **<String\>**
   - Throws: **<URIError\>** Error codes:
     - `URI_INVALID_TYPE`
@@ -1002,9 +1060,9 @@ Encode an URI string with basic checking based on **RFC-3986** standard applied 
     - `URI_INVALID_PATH`
     - `URI_INVALID_HOST`
     - `URI_INVALID_SCHEME`
-    - `URI_INVALID_SCHEME_CHAR`
     - `URI_INVALID_PORT`
     - `URI_MISSING_AUTHORITY`
+    - `URI_MAX_LENGTH_URL`
 
 <br/>
 
@@ -1018,15 +1076,19 @@ encodeSitemapURL('ftp://bar.baz'); // throws URIError with code URI_INVALID_SCHE
 encodeSitemapURL('hôtp://bar.baz'); // throws URIError with code URI_INVALID_SCHEME
 encodeSitemapURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
 encodeSitemapURL('http:isbn:0-486-27557-4'); // throws URIError with code URI_MISSING_AUTHORITY
+encodeSitemapURL(`http://example.com/${'path'.repeat(2040)}`); // throws URIError with code URI_MAX_LENGTH_URL
 
-encodeSitemapURL('http://bar.baz/it\'s over<there>?a="b"&c="d"'); // 'http://bar.baz/it&apos;s%20over&lt;there&gt;?a=&quot;b&quot;&amp;c=&quot;d&quot;'
-encodeSitemapURL('http://bar.baz/IT\'S OVER<there>?a="b"&c="d"'); // 'http://bar.baz/IT&apos;S%20OVER&lt;there&gt;?a=&quot;b&quot;&amp;c=&quot;d&quot;'
+encodeSitemapURL('http://user:p\'âss@bar.baz/it\'s *ver/there?a=b&b=c#anch*r'); // 'http://user:p&apos;%C3%A2ss@bar.baz/it&apos;s%20%2Aver/there?a=b&amp;b=c#anch%2Ar'
 ```
 
 ## decodeURIComponentString(component, options)
-Decode an URI component string with Sitemap's escape codes support.
+Decode an URI component string.
 
 Native function `decodeURIComponent` could throw and to be consistent with [encodeURIComponentString](#encodeuricomponentstringcomponent-options) the empty string is returned if unable to decode.
+
+**Support**:
+- Sitemap's escape codes, see __[checkHttpSitemapURL](#checkhttpsitemapurluri)__;
+- lower and upper case.
 
 <br/>
 
@@ -1062,14 +1124,14 @@ Decode an URI string according to **RFC-3986** with basic checking.
 - scheme is required;
 - path is required, can be empty;
 - port, if any, must be a number;
-- host must be a valid ip or domain name.
+- host must be a valid IP or domain name.
 
 **Support**:
 - IDNs: returns URI with its Punydecoded host (Unicode serialization of the domain), if any;
 - lower and upper case.
 
 **Note**:
-- if one of userinfo, path, query or fragment component cannot be decoded, it will be ignored;
+- if one of `userinfo`, `path`, `query` or `fragment` component cannot be decoded, it will be ignored;
 - native function `decodeURI` does not support IDNs and cannot properly work with `encodeURI` since the function is based on an outdated standard;
 - to stay fully **RFC-3986** compliant, scheme and host are put in lowercase;
 - to only use with [encodeURIString](#encodeuristringuri-options).
@@ -1122,7 +1184,7 @@ Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3
 - path is required, can be empty;
 - authority is required;
 - port, if any, must be a number;
-- host must be a valid ip or domain name;
+- host must be a valid IP or domain name;
 - URL must be less than 2048 characters.
 
 **Support**:
@@ -1130,7 +1192,7 @@ Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3
 - lower and upper case.
 
 **Note**:
-- if one of userinfo, path, query or fragment component cannot be decoded, it will be ignored;
+- if one of `userinfo`, `path`, `query` or `fragment` component cannot be decoded, it will be ignored;
 - native function `decodeURI` does not support IDNs and cannot properly work with `encodeURI` since the function is based on an outdated standard;
 - to stay fully **RFC-3986** compliant, scheme and host are put in lowercase;
 - to only use with [encodeWebURL](#encodeweburluri-options).
@@ -1188,7 +1250,7 @@ Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3
 - path is required, can be empty;
 - authority is required;
 - port, if any, must be a number;
-- host must be a valid ip or domain name;
+- host must be a valid IP or domain name;
 - URL must be less than 2048 characters.
 
 **Support**:
@@ -1197,10 +1259,10 @@ Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3
 - lower and upper case.
 
 **Note**:
-- if one of userinfo, path, query or fragment component cannot be decoded, it will be ignored;
+- if one of `userinfo`, `path`, `query` or `fragment` component cannot be decoded, it will be ignored;
 - native function `decodeURI` does not support IDNs and cannot properly work with `encodeURI` since the function is based on an outdated standard;
 - to stay fully **RFC-3986** compliant, scheme and host are put in lowercase;
-- to only use with [encodeSitemapURL](#encodesitemapurluri-options).
+- to only use with [encodeSitemapURL](#encodesitemapurluri).
 
 <br/>
 

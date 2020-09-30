@@ -10,7 +10,7 @@ const hexdig = 'ABCDEF';
 const digits = '0123456789';
 
 // allowed
-const allowed = '!"#$%&\'()*+,-./:;=?@[]_~';
+const allowed = '!#$%&\'()*+,-./:;=?@[]_~';
 
 const unreserved = `${az}${AZ}${digits}-._~`;
 const genDelims = ':/?#[]@';

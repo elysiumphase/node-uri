@@ -1,9 +1,11 @@
 # CHANGELOG
 
-- fix parser to support ipv6 extraction (parse and recompose)
-- add href attribute when parsing uri
-- fix punycode and punydecode that should work with ipv6
-- fix " characters not allowed in any uri
+## 1.1.0 - delivery @29/09/2020
+
+- fix parser to support IPv6 extraction (parse and recompose)
+- add href attribute when parsing URI
+- fix punycode and punydecode that should work with IPv6
+- fix " (quote) character not allowed in any URI
 - fix sitemap characters
 - remove checkURISyntax from API
 - change recomposeURI to ignore port, userinfo, query and fragment if not valid
