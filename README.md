@@ -235,7 +235,7 @@ Parse a string to get URI components.
     - `pathqf` **<String\>** The URI path, query and fragment. *Default*: `null`
     - `query` **<String\>** The URI query. *Default*: `null`
     - `fragment` **<String\>** The URI fragment. *Default*: `null`
-    - `href` **<String\>** The URI recomposed. *Default*: `null`
+    - `href` **<String\>** The URI recomposed. See __[recomposeURI](recomposeurioptions)__ *Default*: `null`
 
 <br/>
 
@@ -304,6 +304,22 @@ parseURI('urn:isbn:0-486-27557-4');
 //   fragment: null
 //   href: 'urn:isbn:0-486-27557-4',
 // }
+
+parseURI('http://user:pass@[fe80::7:8%eth0]:8080');
+// {
+//   scheme: 'http',
+//   authority: 'user:pass@[fe80::7:8%eth0]:8080',
+//   authorityPunydecoded: 'user:pass@[fe80::7:8%eth0]:8080',
+//   userinfo: 'user:pass',
+//   host: 'fe80::7:8%eth0',
+//   hostPunydecoded: 'fe80::7:8%eth0',
+//   port: 8080,
+//   path: '',
+//   pathqf: '',
+//   query: null,
+//   fragment: null,
+//   href: 'http://user:pass@[fe80::7:8%eth0]:8080'
+// }
 ```
 
 ## recomposeURI(options)
@@ -317,13 +333,22 @@ The empty string is returned if unable to recompose the URI.
 3. if host is present path must be empty or start with `/`;
 4. if host is not present path must not start with `//`;
 5. host, if any, must be at least 3 characters;
-6. userinfo, if any, must be at least 1 character;
-7. port, if any, must be an integer;
-8. query, if any, must be at least 1 character;
-9. fragment, if any, must be at least 1 character.
+6. userinfo will be ignored if empty;
+7. port will be ignored if unable to parse it into an integer between 0 - 65535;
+8. query will be ignored if empty;
+9. fragment will be ignored if empty.
 
 **Support**:
-- IPv6.
+- IPv4 and IPv6.
+
+**Note**:
+- `/` is added to any URI with a host and an empty path.
+
+<br/>
+
+**Generic syntax**:
+
+![URI Syntax](docs/uri-syntax.png "URI Syntax")
 
 <br/>
 
@@ -537,7 +562,7 @@ Check an URI is valid according to **RFC-3986**.
 6. if authority is present:
   1. host must be a valid IP or domain name;
   2. __<a href="https://tools.ietf.org/html/rfc3986#section-3.2.1" target="_blank">userinfo, if any, can only have specific characters</a>__;
-  3. port, if any, must be an integer.
+  3. port, if any, must be an integer between 0 - 65535.
 7. __<a href="https://tools.ietf.org/html/rfc3986#section-3.3" target="_blank">path, query and fragment can only have specific characters</a>__.
 
 <br/>
@@ -879,7 +904,7 @@ Encode an URI string according to **RFC-3986** with basic checking.
 **Checked**:
 - scheme is required;
 - path is required, can be empty;
-- port, if any, must be a number;
+- port, if any, must be an integer between 0 - 65535;
 - host must be a valid IP or domain name.
 
 **Support**:
@@ -946,7 +971,7 @@ Uses __[a fixed encodeURI function](#encodeuristringuri-options)__ to be **RFC-3
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
-- port, if any, must be a number;
+- port, if any, must be an integer between 0 - 65535;
 - host must be a valid IP or domain name;
 - URL must be less than 2048 characters.
 
@@ -1019,7 +1044,7 @@ Uses __[a fixed encodeURI function](#encodeuristringuri-options)__ to be **RFC-3
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
-- port, if any, must be a number;
+- port, if any, must be an integer between 0 - 65535;
 - host must be a valid IP or domain name;
 - URL must be less than 2048 characters.
 
@@ -1123,7 +1148,7 @@ Decode an URI string according to **RFC-3986** with basic checking.
 **Checked**:
 - scheme is required;
 - path is required, can be empty;
-- port, if any, must be a number;
+- port, if any, must be an integer between 0 - 65535;
 - host must be a valid IP or domain name.
 
 **Support**:
@@ -1183,7 +1208,7 @@ Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
-- port, if any, must be a number;
+- port, if any, must be an integer between 0 - 65535;
 - host must be a valid IP or domain name;
 - URL must be less than 2048 characters.
 
@@ -1249,7 +1274,7 @@ Uses __[a fixed decodeURI function](#decodeuristringuri-options)__ to be **RFC-3
 - scheme must be `http`/`HTTP` or `https`/`HTTPS`;
 - path is required, can be empty;
 - authority is required;
-- port, if any, must be a number;
+- port, if any, must be an integer between 0 - 65535;
 - host must be a valid IP or domain name;
 - URL must be less than 2048 characters.
 

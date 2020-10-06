@@ -5,7 +5,7 @@ const {
   decodeWebURL,
   decodeSitemapURL,
 } = require('../../lib/decoders');
-const { maxLengthURL } = require('../../lib/config');
+const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../lib/config');
 const {
   az,
   AZ,
@@ -213,16 +213,26 @@ describe('#decoders', function() {
       expect(() => decodeURIString('http://a.b.a.com')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
     });
 
-    it('should throw an uri error if port to decode is not valid', function() {
+    it('should throw an uri error if port to decode is not an integer', function() {
       expect(() => decodeURIString('http://example.com:80g80')).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
     });
 
+    it('should throw an uri error if port to decode is out of range', function() {
+      expect(() => decodeURIString(`http://example.com:${minPortInteger - 1}`)).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+      expect(() => decodeURIString(`http://example.com:${maxPortInteger + 1}`)).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+    });
+
+    it('should not throw an uri error if port to decode is in range', function() {
+      expect(() => decodeURIString(`http://example.com:${minPortInteger}`)).to.not.throw();
+      expect(() => decodeURIString(`http://example.com:${maxPortInteger}`)).to.not.throw();
+    });
+
     it('should ignore userinfo provided if unable to decode', function() {
-      expect(decodeURIString('http://user%pass@example.com:8080')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeURIString('http://user%pass@example.com:8080')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should ignore path provided if unable to decode', function() {
-      expect(decodeURIString('http://example.com:8080/over%there')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeURIString('http://example.com:8080/over%there')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should ignore query provided if unable to decode', function() {
@@ -234,7 +244,7 @@ describe('#decoders', function() {
     });
 
     it('should ignore userinfo, path, query and fragment provided if unable to decode', function() {
-      expect(decodeURIString('http://user%pass@example.com:8080/over%there?query=val%ue#anch%or')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeURIString('http://user%pass@example.com:8080/over%there?query=val%ue#anch%or')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should throw an uri error if authority is null and option is web or sitemap', function() {
@@ -334,15 +344,15 @@ describe('#decoders', function() {
     });
 
     it('should return scheme and host in lowercase by default', function() {
-      expect(decodeURIString('FTP://WWW.EXAMPLE.COM.')).to.be.a('string').and.to.equals('ftp://www.example.com.');
-      expect(decodeURIString('HTTP://WWW.EXAMPLE.COM.', { web: true })).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(decodeURIString('HTTP://WWW.EXAMPLE.COM.', { sitemap: true })).to.be.a('string').and.to.equals('http://www.example.com.');
+      expect(decodeURIString('FTP://WWW.EXAMPLE.COM.')).to.be.a('string').and.to.equals('ftp://www.example.com./');
+      expect(decodeURIString('HTTP://WWW.EXAMPLE.COM.', { web: true })).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(decodeURIString('HTTP://WWW.EXAMPLE.COM.', { sitemap: true })).to.be.a('string').and.to.equals('http://www.example.com./');
     });
 
     it('should return an uri with uppercase letters if lowercase is false except host and scheme automatically put in lowercase to be RFC-3986 compliant', function() {
-      expect(decodeURIString('ftp://WWW.EXAMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('ftp://www.example.com.');
-      expect(decodeURIString('HTTP://WWW.EXAmPLE.COM.', { web: true, lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(decodeURIString('https://WWW.EXaMPLE.COM.', { sitemap: true, lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com.');
+      expect(decodeURIString('ftp://WWW.EXAMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('ftp://www.example.com./');
+      expect(decodeURIString('HTTP://WWW.EXAmPLE.COM.', { web: true, lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(decodeURIString('https://WWW.EXaMPLE.COM.', { sitemap: true, lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com./');
 
       expect(decodeURIString('ftp://WWW.EXAMPLE.COM./Over/There', { lowercase: false })).to.be.a('string').and.to.equals('ftp://www.example.com./Over/There');
       expect(decodeURIString('http://WWW.EXAmPLE.COM./Over/There?a=B#Anchor', { web: true, lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./Over/There?a=B#Anchor');
@@ -404,18 +414,18 @@ describe('#decoders', function() {
     });
 
     it('should return the expected uri decoded string with the punydecoded host', function() {
-      expect(decodeURIString('ftp://xn--exmple-4ua.com:8080')).to.be.a('string').and.to.equals('ftp://exèmple.com:8080');
-      expect(decodeURIString('ftp://exèmple.com:8080')).to.be.a('string').and.to.equals('ftp://exèmple.com:8080');
+      expect(decodeURIString('ftp://xn--exmple-4ua.com:8080')).to.be.a('string').and.to.equals('ftp://exèmple.com:8080/');
+      expect(decodeURIString('ftp://exèmple.com:8080')).to.be.a('string').and.to.equals('ftp://exèmple.com:8080/');
       expect(decodeURIString('ftp://xn--exmple-4ua.com/p%C3%A2th')).to.be.a('string').and.to.equals('ftp://exèmple.com/pâth');
-      expect(decodeURIString('ftp://xn--fiq228c.com.')).to.be.a('string').and.to.equals('ftp://中文.com.');
+      expect(decodeURIString('ftp://xn--fiq228c.com.')).to.be.a('string').and.to.equals('ftp://中文.com./');
 
-      expect(decodeURIString('http://xn--exmple-4ua.com:8080', { web: true })).to.be.a('string').and.to.equals('http://exèmple.com:8080');
+      expect(decodeURIString('http://xn--exmple-4ua.com:8080', { web: true })).to.be.a('string').and.to.equals('http://exèmple.com:8080/');
       expect(decodeURIString('http://xn--exmple-4ua.com/p%C3%A2th', { web: true })).to.be.a('string').and.to.equals('http://exèmple.com/pâth');
-      expect(decodeURIString('http://xn--fiq228c.com.', { web: true })).to.be.a('string').and.to.equals('http://中文.com.');
+      expect(decodeURIString('http://xn--fiq228c.com.', { web: true })).to.be.a('string').and.to.equals('http://中文.com./');
 
-      expect(decodeURIString('http://xn--exmple-4ua.com:8080', { sitemap: true })).to.be.a('string').and.to.equals('http://exèmple.com:8080');
+      expect(decodeURIString('http://xn--exmple-4ua.com:8080', { sitemap: true })).to.be.a('string').and.to.equals('http://exèmple.com:8080/');
       expect(decodeURIString('http://xn--exmple-4ua.com/p%C3%A2th', { sitemap: true })).to.be.a('string').and.to.equals('http://exèmple.com/pâth');
-      expect(decodeURIString('http://xn--fiq228c.com.', { sitemap: true })).to.be.a('string').and.to.equals('http://中文.com.');
+      expect(decodeURIString('http://xn--fiq228c.com.', { sitemap: true })).to.be.a('string').and.to.equals('http://中文.com./');
     });
 
     it('should return the expected uri decoded string with the userinfo decoded', function() {
@@ -528,11 +538,11 @@ describe('#decoders', function() {
     });
 
     it('should ignore userinfo provided if unable to decode', function() {
-      expect(decodeWebURL('http://user%pass@example.com:8080')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeWebURL('http://user%pass@example.com:8080')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should ignore path provided if unable to decode', function() {
-      expect(decodeWebURL('http://example.com:8080/over%there')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeWebURL('http://example.com:8080/over%there')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should ignore query provided if unable to decode', function() {
@@ -544,7 +554,7 @@ describe('#decoders', function() {
     });
 
     it('should ignore userinfo, path, query and fragment provided if unable to decode', function() {
-      expect(decodeWebURL('http://user%pass@example.com:8080/over%there?query=val%ue#anch%or')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeWebURL('http://user%pass@example.com:8080/over%there?query=val%ue#anch%or')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should not throw an uri error if uri to decode has letters in uppercase by default', function() {
@@ -573,12 +583,12 @@ describe('#decoders', function() {
     });
 
     it('should return scheme and host in lowercase by default', function() {
-      expect(decodeWebURL('HTTP://WWW.EXAMPLE.COM.')).to.be.a('string').and.to.equals('http://www.example.com.');
+      expect(decodeWebURL('HTTP://WWW.EXAMPLE.COM.')).to.be.a('string').and.to.equals('http://www.example.com./');
     });
 
     it('should return an url with uppercase letters if lowercase is false except host and scheme automatically put in lowercase to be RFC-3986 compliant', function() {
-      expect(decodeWebURL('http://WWW.EXAmPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(decodeWebURL('https://WWW.EXaMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com.');
+      expect(decodeWebURL('http://WWW.EXAmPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(decodeWebURL('https://WWW.EXaMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com./');
       expect(decodeWebURL('http://WWW.EXAMPLE.COM./Over/There', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./Over/There');
       expect(decodeWebURL('HTTP://WWW.EXAmPLE.COM./Over/There?a=B#Anchor', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./Over/There?a=B#Anchor');
     });
@@ -598,10 +608,10 @@ describe('#decoders', function() {
     });
 
     it('should return the expected url decoded string with the punydecoded host', function() {
-      expect(decodeWebURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://exèmple.com:8080');
-      expect(decodeWebURL('http://xn--exmple-4ua.com:8080', { web: true })).to.be.a('string').and.to.equals('http://exèmple.com:8080');
+      expect(decodeWebURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://exèmple.com:8080/');
+      expect(decodeWebURL('http://xn--exmple-4ua.com:8080', { web: true })).to.be.a('string').and.to.equals('http://exèmple.com:8080/');
       expect(decodeWebURL('http://xn--exmple-4ua.com/p%C3%A2th', { web: true })).to.be.a('string').and.to.equals('http://exèmple.com/pâth');
-      expect(decodeWebURL('http://xn--fiq228c.com.', { web: true })).to.be.a('string').and.to.equals('http://中文.com.');
+      expect(decodeWebURL('http://xn--fiq228c.com.', { web: true })).to.be.a('string').and.to.equals('http://中文.com./');
     });
 
     it('should return the expected url decoded string with the userinfo decoded', function() {
@@ -688,11 +698,11 @@ describe('#decoders', function() {
     });
 
     it('should ignore userinfo provided if unable to decode', function() {
-      expect(decodeSitemapURL('http://user%pass@example.com:8080')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeSitemapURL('http://user%pass@example.com:8080')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should ignore path provided if unable to decode', function() {
-      expect(decodeSitemapURL('http://example.com:8080/over%there')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeSitemapURL('http://example.com:8080/over%there')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should ignore query provided if unable to decode', function() {
@@ -704,7 +714,7 @@ describe('#decoders', function() {
     });
 
     it('should ignore userinfo, path, query and fragment provided if unable to decode', function() {
-      expect(decodeSitemapURL('http://user%pass@example.com:8080/over%there?query=val%ue#anch%or')).to.be.a('string').and.to.equals('http://example.com:8080');
+      expect(decodeSitemapURL('http://user%pass@example.com:8080/over%there?query=val%ue#anch%or')).to.be.a('string').and.to.equals('http://example.com:8080/');
     });
 
     it('should not throw an uri error if url to decode has letters in uppercase by default', function() {
@@ -733,12 +743,12 @@ describe('#decoders', function() {
     });
 
     it('should return scheme and host in lowercase by default', function() {
-      expect(decodeSitemapURL('HTTP://WWW.EXAMPLE.COM.')).to.be.a('string').and.to.equals('http://www.example.com.');
+      expect(decodeSitemapURL('HTTP://WWW.EXAMPLE.COM.')).to.be.a('string').and.to.equals('http://www.example.com./');
     });
 
     it('should return an url with uppercase letters if lowercase is false except host and scheme automatically put in lowercase to be RFC-3986 compliant', function() {
-      expect(decodeSitemapURL('http://WWW.EXAmPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(decodeSitemapURL('HTTPS://WWW.EXaMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com.');
+      expect(decodeSitemapURL('http://WWW.EXAmPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(decodeSitemapURL('HTTPS://WWW.EXaMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com./');
       expect(decodeSitemapURL('http://WWW.EXAmPLE.COM./Over/There?a=B#Anchor', { lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./Over/There?a=B#Anchor');
       expect(decodeSitemapURL('https://WWW.EXaMPLE.COM./Over/There?a=B&amp;b=c#Anchor', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com./Over/There?a=B&b=c#Anchor');
     });
@@ -773,10 +783,10 @@ describe('#decoders', function() {
     });
 
     it('should return the expected url decoded string with the punydecoded host', function() {
-      expect(decodeSitemapURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://exèmple.com:8080');
-      expect(decodeSitemapURL('http://xn--exmple-4ua.com:8080')).to.be.a('string').and.to.equals('http://exèmple.com:8080');
+      expect(decodeSitemapURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://exèmple.com:8080/');
+      expect(decodeSitemapURL('http://xn--exmple-4ua.com:8080')).to.be.a('string').and.to.equals('http://exèmple.com:8080/');
       expect(decodeSitemapURL('http://xn--exmple-4ua.com/p%C3%A2th')).to.be.a('string').and.to.equals('http://exèmple.com/pâth');
-      expect(decodeSitemapURL('http://xn--fiq228c.com.')).to.be.a('string').and.to.equals('http://中文.com.');
+      expect(decodeSitemapURL('http://xn--fiq228c.com.')).to.be.a('string').and.to.equals('http://中文.com./');
     });
 
     it('should return the expected url decoded string with the userinfo decoded', function() {

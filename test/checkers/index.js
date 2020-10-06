@@ -1,5 +1,5 @@
 const { expect } = require('../Common');
-const { maxLengthURL } = require('../../lib/config');
+const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../lib/config');
 const {
   checkPercentEncoding,
   checkSitemapEncoding,
@@ -573,6 +573,16 @@ describe('#checkers', function() {
 
     it('should throw an uri error when port is not a number', function() {
       expect(() => checkURI('foo://example.com:80g42/over/there?name=ferret#nose')).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+    });
+
+    it('should throw an uri error when port is out of range', function() {
+      expect(() => checkURI(`foo://example.com:${minPortInteger - 1}/over/there?name=ferret#nose`)).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+      expect(() => checkURI(`foo://example.com:${maxPortInteger + 1}/over/there?name=ferret#nose`)).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+    });
+
+    it('should not throw an uri error when port is in range', function() {
+      expect(() => checkURI(`foo://example.com:${minPortInteger}/over/there?name=ferret#nose`)).to.not.throw();
+      expect(() => checkURI(`foo://example.com:${maxPortInteger}/over/there?name=ferret#nose`)).to.not.throw();
     });
 
     it('should throw an uri error if path has invalid characters', function() {

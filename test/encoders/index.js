@@ -1,5 +1,5 @@
 const { expect } = require('../Common');
-const { maxLengthURL } = require('../../lib/config');
+const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../lib/config');
 const {
   encodeURIComponentString,
   encodeURIString,
@@ -245,8 +245,18 @@ describe('#encoders', function(){
       expect(() => encodeURIString('http://com.com')).to.throw(URIError).with.property('code', 'URI_INVALID_HOST');
     });
 
-    it('should throw an uri error if port to encode is not valid', function() {
+    it('should throw an uri error if port to encode is not an integer', function() {
       expect(() => encodeURIString('http://example.com:80g80')).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+    });
+
+    it('should throw an uri error if port to encode is out of range', function() {
+      expect(() => encodeURIString(`http://example.com:${minPortInteger - 1}`)).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+      expect(() => encodeURIString(`http://example.com:${maxPortInteger + 1}`)).to.throw(URIError).with.property('code', 'URI_INVALID_PORT');
+    });
+
+    it('should not throw an uri error if port to encode is in range', function() {
+      expect(() => encodeURIString(`http://example.com:${minPortInteger}`)).to.not.throw();
+      expect(() => encodeURIString(`http://example.com:${maxPortInteger}`)).to.not.throw();
     });
 
     it('should throw an uri error if authority is null and option is web or sitemap', function() {
@@ -343,8 +353,8 @@ describe('#encoders', function(){
 
     it('should return a lowercased uri only for scheme and host by default', function() {
       expect(encodeURIString('FTP://WWW.EXAMPLE.COM./Path')).to.be.a('string').and.to.equals('ftp://www.example.com./Path');
-      expect(encodeURIString('HTTP://WWW.EXAMPLE.COM.', { web: true })).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(encodeURIString('HTTP://WWW.EXAMPLE.COM.', { sitemap: true })).to.be.a('string').and.to.equals('http://www.example.com.');
+      expect(encodeURIString('HTTP://WWW.EXAMPLE.COM.', { web: true })).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(encodeURIString('HTTP://WWW.EXAMPLE.COM.', { sitemap: true })).to.be.a('string').and.to.equals('http://www.example.com./');
     });
 
     it('should return a lowercased uri if lowercase is true', function() {
@@ -357,9 +367,9 @@ describe('#encoders', function(){
 
     it('should return an uri with uppercase letters if lowercase is false except scheme and host automatically put in lowercase to be RFC-3986 compliant', function() {
       expect(encodeURIString('ftp://WWW.EXAMPLE.COM./Path')).to.be.a('string').and.to.equals('ftp://www.example.com./Path');
-      expect(encodeURIString('ftp://WWW.EXAMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('ftp://www.example.com.');
-      expect(encodeURIString('http://WWW.EXAmPLE.COM.', { web: true, lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(encodeURIString('https://WWW.EXaMPLE.COM.', { sitemap: true, lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com.');
+      expect(encodeURIString('ftp://WWW.EXAMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('ftp://www.example.com./');
+      expect(encodeURIString('http://WWW.EXAmPLE.COM.', { web: true, lowercase: false })).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(encodeURIString('https://WWW.EXaMPLE.COM.', { sitemap: true, lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com./');
       expect(encodeURIString(`HTTP://${AZ}@www.EXAMPLE.com./${AZ}?${AZ}#${AZ}`, { lowercase: false })).to.be.a('string').and.to.equals(`http://${AZ}@www.example.com./${AZ}?${AZ}#${AZ}`);
 
       expect(encodeURIString('ftp://WWW.EXAMPLE.COM./Over/There', { lowercase: false })).to.be.a('string').and.to.equals('ftp://www.example.com./Over/There');
@@ -371,7 +381,7 @@ describe('#encoders', function(){
     });
 
     it('should return a string with the exact same characters if allowed in userinfo', function() {
-      expect(encodeURIString(`http://${allowedUserinfoCharsToEncode}@host.com`)).to.be.a('string').and.to.equals(`http://${allowedUserinfoCharsToEncode}@host.com`);
+      expect(encodeURIString(`http://${allowedUserinfoCharsToEncode}@host.com`)).to.be.a('string').and.to.equals(`http://${allowedUserinfoCharsToEncode}@host.com/`);
     });
 
     it('should return a string with the exact same characters if allowed in path', function() {
@@ -387,7 +397,7 @@ describe('#encoders', function(){
     });
 
     it('should return a string with the exact same characters if allowed in userinfo and sitemap', function() {
-      expect(encodeURIString(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com`, { sitemap: true })).to.be.a('string').and.to.equals(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com`);
+      expect(encodeURIString(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com`, { sitemap: true })).to.be.a('string').and.to.equals(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com/`);
     });
 
     it('should return a string with the exact same characters if allowed in path and sitemap', function() {
@@ -449,17 +459,17 @@ describe('#encoders', function(){
     });
 
     it('should return the expected uri encoded string with the punycoded host', function() {
-      expect(encodeURIString('ftp://exèmple.com:8080')).to.be.a('string').and.to.equals('ftp://xn--exmple-4ua.com:8080');
+      expect(encodeURIString('ftp://exèmple.com:8080')).to.be.a('string').and.to.equals('ftp://xn--exmple-4ua.com:8080/');
       expect(encodeURIString('ftp://exèmple.com/pâth')).to.be.a('string').and.to.equals('ftp://xn--exmple-4ua.com/p%C3%A2th');
-      expect(encodeURIString('ftp://中文.com.')).to.be.a('string').and.to.equals('ftp://xn--fiq228c.com.');
+      expect(encodeURIString('ftp://中文.com.')).to.be.a('string').and.to.equals('ftp://xn--fiq228c.com./');
 
-      expect(encodeURIString('http://exèmple.com:8080', { web: true })).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080');
+      expect(encodeURIString('http://exèmple.com:8080', { web: true })).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080/');
       expect(encodeURIString('http://exèmple.com/pâth', { web: true })).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com/p%C3%A2th');
-      expect(encodeURIString('http://中文.com.', { web: true })).to.be.a('string').and.to.equals('http://xn--fiq228c.com.');
+      expect(encodeURIString('http://中文.com.', { web: true })).to.be.a('string').and.to.equals('http://xn--fiq228c.com./');
 
-      expect(encodeURIString('http://exèmple.com:8080', { sitemap: true })).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080');
+      expect(encodeURIString('http://exèmple.com:8080', { sitemap: true })).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080/');
       expect(encodeURIString('http://exèmple.com/pâth', { sitemap: true })).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com/p%C3%A2th');
-      expect(encodeURIString('http://中文.com.', { sitemap: true })).to.be.a('string').and.to.equals('http://xn--fiq228c.com.');
+      expect(encodeURIString('http://中文.com.', { sitemap: true })).to.be.a('string').and.to.equals('http://xn--fiq228c.com./');
     });
 
     it('should return the expected uri encoded string', function() {
@@ -554,8 +564,8 @@ describe('#encoders', function(){
     });
 
     it('should return an uri with uppercase letters if lowercase is false except host automatically put in lowercase to be RFC-3986 compliant', function() {
-      expect(encodeWebURL('http://WWW.EXAmPLE.COM.')).to.be.a('string').and.to.equals('http://www.example.com.');
-      expect(encodeWebURL('https://WWW.EXaMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com.');
+      expect(encodeWebURL('http://WWW.EXAmPLE.COM.')).to.be.a('string').and.to.equals('http://www.example.com./');
+      expect(encodeWebURL('https://WWW.EXaMPLE.COM.', { lowercase: false })).to.be.a('string').and.to.equals('https://www.example.com./');
       expect(encodeWebURL('http://USER:pass@WWW.EXAmPLE.COM./Over/There?a=B#Anchor', { lowercase: false })).to.be.a('string').and.to.equals('http://USER:pass@www.example.com./Over/There?a=B#Anchor');
     });
 
@@ -564,7 +574,7 @@ describe('#encoders', function(){
     });
 
     it('should return a string with the exact same characters if allowed in userinfo', function() {
-      expect(encodeWebURL(`http://${allowedUserinfoCharsToEncode}@host.com`)).to.be.a('string').and.to.equals(`http://${allowedUserinfoCharsToEncode}@host.com`);
+      expect(encodeWebURL(`http://${allowedUserinfoCharsToEncode}@host.com`)).to.be.a('string').and.to.equals(`http://${allowedUserinfoCharsToEncode}@host.com/`);
     });
 
     it('should return a string with the exact same characters if allowed in path', function() {
@@ -596,9 +606,9 @@ describe('#encoders', function(){
     });
 
     it('should return the expected url encoded string with the punycoded host', function() {
-      expect(encodeWebURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080');
+      expect(encodeWebURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080/');
       expect(encodeWebURL('http://exèmple.com/pâth')).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com/p%C3%A2th');
-      expect(encodeWebURL('http://中文.com.')).to.be.a('string').and.to.equals('http://xn--fiq228c.com.');
+      expect(encodeWebURL('http://中文.com.')).to.be.a('string').and.to.equals('http://xn--fiq228c.com./');
     });
 
     it('should return the expected url encoded string with the userinfo encoded', function() {
@@ -689,12 +699,12 @@ describe('#encoders', function(){
     });
 
     it('should always return an uri with lowercase letters', function() {
-      expect(encodeSitemapURL('https://WWW.EXaMPLE.COM.')).to.be.a('string').and.to.equals('https://www.example.com.');
+      expect(encodeSitemapURL('https://WWW.EXaMPLE.COM.')).to.be.a('string').and.to.equals('https://www.example.com./');
       expect(encodeSitemapURL('http://USER:pass@WWW.EXAmPLE.COM./Over/There?a=B#Anchor')).to.be.a('string').and.to.equals('http://user:pass@www.example.com./over/there?a=b#anchor');
     });
 
     it('should return a string with the exact same characters if allowed in userinfo and sitemap', function() {
-      expect(encodeSitemapURL(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com`)).to.be.a('string').and.to.equals(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com`);
+      expect(encodeSitemapURL(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com`)).to.be.a('string').and.to.equals(`http://${allowedSitemapUserinfoCharsToEncode.replace('&', '')}@host.com/`);
     });
 
     it('should return a string with the exact same characters if allowed in path and sitemap', function() {
@@ -732,9 +742,9 @@ describe('#encoders', function(){
     });
 
     it('should return the expected url encoded string with the punycoded host', function() {
-      expect(encodeSitemapURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080');
+      expect(encodeSitemapURL('http://exèmple.com:8080')).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com:8080/');
       expect(encodeSitemapURL('http://exèmple.com/pâth')).to.be.a('string').and.to.equals('http://xn--exmple-4ua.com/p%C3%A2th');
-      expect(encodeSitemapURL('http://中文.com.')).to.be.a('string').and.to.equals('http://xn--fiq228c.com.');
+      expect(encodeSitemapURL('http://中文.com.')).to.be.a('string').and.to.equals('http://xn--fiq228c.com./');
     });
 
     it('should return the expected url encoded string', function() {
