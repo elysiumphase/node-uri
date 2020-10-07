@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.1 - delivery @07/10/2020
+
+- fix readme typo
+
 ## 1.1.0 - delivery @07/10/2020
 
 - fix parser to support IPv6 extraction (parse and recompose)

@@ -1497,7 +1497,7 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
 This project has a [Code of Conduct](.github/CODE_OF_CONDUCT.md). By interacting with this repository, organization, or community you agree to abide by its terms.
 
 # Contributing
-Please have a look to our [TODO](TODO.md) for any work in progress.
+Please have a look at our [TODO](TODO.md) for any work in progress.
 
 Please take also a moment to read our [Contributing Guidelines](.github/CONTRIBUTING.md) if you haven't yet done so.
 
