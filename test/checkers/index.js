@@ -5,6 +5,7 @@ const {
   checkSitemapEncoding,
   checkComponent,
   checkSchemeChars,
+  checkLowercase,
   checkURISyntax,
   checkURI,
   checkHttpURL,
@@ -394,6 +395,32 @@ describe('#checkers', function() {
 
     it('should throw an uri error when scheme has invalid characters', function() {
       expect(() => checkSchemeChars(disallowedSchemeChars)).to.throw(URIError).with.property('code', 'URI_INVALID_SCHEME_CHAR');
+    });
+  });
+
+  context('when using checkLowercase', function() {
+    it('should throw an uri error when uri is missing or is not a string', function() {
+      expect(() => checkLowercase()).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase(undefined)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase(NaN)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase([])).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase(new Error('error'))).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase(5)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase(true)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkLowercase(false)).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+    });
+
+    it('should throw an uri error when uri has any uppercase characters', function() {
+      expect(() => checkLowercase('A')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkLowercase('aAa')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkLowercase('aA')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkLowercase('12345See')).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkLowercase(AZ)).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+    });
+
+    it('should not throw an uri error when uri has not any uppercase characters', function() {
+      expect(() => checkLowercase(az)).to.not.throw();
+      expect(() => checkLowercase('12azlkgdhs9')).to.not.throw();
     });
   });
 
@@ -1067,6 +1094,33 @@ describe('#checkers', function() {
       expect(() => checkHttpURL('https://user:pass@example.com./', { web: true })).to.not.throw();
       expect(() => checkHttpURL('https://user:pass@example.com.', { web: true })).to.not.throw();
       expect(() => checkHttpURL('https://user:pass@example.com:8042/over/there#nose', { web: true })).to.not.throw();
+    });
+
+    it('should throw an uri error if uri is missing or is not a string when sitemap is true', function() {
+      expect(() => checkHttpURL(null, { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(undefined, { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(NaN, { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(5, { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(true, { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL(new Error('error'), { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL({}, { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+      expect(() => checkHttpURL([], { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_TYPE');
+    });
+
+    it('should throw an uri error if uri has any uppercase characters when sitemap is true', function() {
+      expect(() => checkHttpURL('hTtp://www.domain.com/sitemap', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkHttpURL('http://wWw.domain.com/sitemap', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkHttpURL('http://www.domain.com/sItemap', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkHttpURL('http://www.domain.com/sitemap?queRy=5', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+      expect(() => checkHttpURL('http://www.domain.com/sitemap?query=5#anchoR', { web: true, sitemap: true })).to.throw(URIError).with.property('code', 'URI_INVALID_CHAR');
+    });
+
+    it('should not throw an uri error if uri has any uppercase characters when sitemap is false', function() {
+      expect(() => checkHttpURL('hTtp://www.domain.com/sitemap', { web: true, sitemap: false })).to.not.throw();
+      expect(() => checkHttpURL('http://wWw.domain.com/sitemap', { web: true, sitemap: false })).to.not.throw();
+      expect(() => checkHttpURL('http://www.domain.com/sItemap', { web: true, sitemap: false })).to.not.throw();
+      expect(() => checkHttpURL('http://www.domain.com/sitemap?queRy=5', { web: true, sitemap: false })).to.not.throw();
+      expect(() => checkHttpURL('http://www.domain.com/sitemap?query=5#anchoR', { web: true, sitemap: false })).to.not.throw();
     });
 
     it('should return a specific object if no errors were thrown', function() {

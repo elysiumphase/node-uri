@@ -3,7 +3,7 @@
 <p>
 
 <p align="center">
-  An <a href="https://tools.ietf.org/html/rfc3986" target="_blank">RFC-3986</a> compliant and zero-dependencies Node.js module to parse URIs, punycode, punydecode, test URIs, URLs, Sitemap URLS, domains, IPs but also encode and decode URIs, URLs and Sitemap URLs.
+  An <a href="https://tools.ietf.org/html/rfc3986" target="_blank">RFC-3986</a> compliant and zero-dependencies Node.js module to parse URIs, punycode, punydecode, test URIs, URLs, Sitemap URLs, domains, IPs but also encode and decode URIs, URLs and Sitemap URLs.
 <p>
 
 # Table of Contents
@@ -19,7 +19,7 @@
   - [punycode(domain)](#punycodedomain)
   - [punydecode(domain)](#punydecodedomain)
   - [parseURI(uri)](#parseuriuri)
-  - [recomposeURI(options)](#recomposeurioptions)
+  - [recomposeURI(components)](#recomposeuricomponents)
   - [isDomainLabel(label)](#isdomainlabellabel)
   - [isDomain(name)](#isdomainname)
   - [isIP(ip)](#isipip)
@@ -57,11 +57,11 @@ Amongst being **RFC-3986** compliant and having no dependency, *node-uri* aims t
 
 The main features of this project are:
 - parse any URI (URNs, URLs, URIs with IDNs, etc.);
-- get the Punycode ASCII or Unicode serialization of a domain;
+- get the safe Punycode ASCII or Unicode serialization of a domain;
 - check an URI, HTTP/HTTPS/Sitemap URL, IP, domain is valid with clear checking errors;
 - encode/decode an URI, HTTP/HTTPS/Sitemap URL.
 
-**2805 assertions** ensure parsing, encoding, decoding, checking URIs, URLs, IPs, domains are working as expected. This does not make this library a 100% reliable source. So if you find any errors, please feel free to report, [contribute](#contributing) and help fixing any issues.
+**2838 assertions** ensure parsing, encoding, decoding, checking URIs, URLs, IPs, domains are working as expected. This does not make this library a 100% reliable source. So if you find any errors, please feel free to report, [contribute](#contributing) and help fixing any issues.
 
 To make sure we properly understand the difference between an URI and an URL, these two are not exactly the same thing. An URI is an identifier of a specific resource. Like a page, a book, or a document. An URL is a special type of identifier that also tells you how to access it, such as HTTPs, FTP, etc. If the protocol (https, ftp, etc.) is either present or implied for a domain, you should call it an URL even though it’s also an URI.
 
@@ -235,7 +235,7 @@ Parse a string to get URI components.
     - `pathqf` **<String\>** The URI path, query and fragment. *Default*: `null`
     - `query` **<String\>** The URI query. *Default*: `null`
     - `fragment` **<String\>** The URI fragment. *Default*: `null`
-    - `href` **<String\>** The URI recomposed. See __[recomposeURI](recomposeurioptions)__ *Default*: `null`
+    - `href` **<String\>** The URI recomposed. See __[recomposeURI](#recomposeuricomponents)__. *Default*: `null`
 
 <br/>
 
@@ -318,11 +318,11 @@ parseURI('http://user:pass@[fe80::7:8%eth0]:8080');
 //   pathqf: '',
 //   query: null,
 //   fragment: null,
-//   href: 'http://user:pass@[fe80::7:8%eth0]:8080'
+//   href: 'http://user:pass@[fe80::7:8%eth0]:8080/'
 // }
 ```
 
-## recomposeURI(options)
+## recomposeURI(components)
 Recompose an URI from its components with basic URI checking.
 
 The empty string is returned if unable to recompose the URI.
@@ -357,7 +357,7 @@ The empty string is returned if unable to recompose the URI.
 
 <br/>
 
-  - `options` **<Object\>**:
+  - `components` **<Object\>**:
     - `scheme`* **<String\>** The URI scheme.
     - `userinfo` **<String\>** The URI userinfo.
     - `host` **<String\>** The URI authority's host.
@@ -412,6 +412,16 @@ recomposeURI({
   query: 'a=b',
   fragment: 'anchor',
 }); // 'foo://user:pass@[fe80::7:8%eth0]:8080/over/there?a=b#anchor'
+
+recomposeURI({
+  scheme: 'foo',
+  userinfo: '',
+  host: 'fe80::7:8%eth0',
+  port: '55g55',
+  path: '/over/there',
+  query: '',
+  fragment: '',
+}); // 'foo://[fe80::7:8%eth0]/over/there'
 ```
 
 ## isDomainLabel(label)
@@ -464,7 +474,7 @@ Test a name is a valid domain according to **RFC-1034**.
 Supports Fully-Qualified Domain Name (FQDN) and Internationalized Domain Name (IDN).
 
 **Rules**:
-1. __[labels rules apply](isdomainlabellabel)__;
+1. __[labels rules apply](#isdomainlabellabel)__;
 2. "*[...] the total number of octets that represent a domain name (i.e., the sum of all label octets and label lengths) is limited to 255.*";
 3. labels are separated by dots (".");
 4. must have at least one extension label;
@@ -570,9 +580,9 @@ Check an URI is valid according to **RFC-3986**.
 4. if authority is not present path must not start with `//`;
 5. __<a href="https://tools.ietf.org/html/rfc3986#section-3.1" target="_blank">scheme can only have specific characters</a>__;
 6. if authority is present:
-  1. host must be a valid IP or domain name;
-  2. __<a href="https://tools.ietf.org/html/rfc3986#section-3.2.1" target="_blank">userinfo, if any, can only have specific characters</a>__;
-  3. port, if any, must be an integer between 0 - 65535.
+  - host must be a valid IP or domain name;
+  - __<a href="https://tools.ietf.org/html/rfc3986#section-3.2.1" target="_blank">userinfo, if any, can only have specific characters</a>__;
+  - port, if any, must be an integer between 0 - 65535.
 7. __<a href="https://tools.ietf.org/html/rfc3986#section-3.3" target="_blank">path, query and fragment can only have specific characters</a>__.
 
 <br/>
@@ -655,9 +665,8 @@ checkURI('foo://user:pass@xn--fiq228c.com:8042/over/there?name=ferret#nose');
 ## checkHttpURL(uri)
 Check an URI is a valid HTTP URL.
 
-This function uses *checkURI* to __[check URI provided is valid](#checkuriuri)__.
-
 **Rules**:
+1. __[must be a valid URI](#checkuriuri)__;
 1. scheme must be `http` or `HTTP`;
 2. authority is required;
 3. URL must be less than 2048 characters.
@@ -743,15 +752,14 @@ Check an URI is a valid HTTPS URL. Same behavior than __[checkHttpURL](#checkhtt
 ## checkHttpSitemapURL(uri)
 Check an URI is a valid HTTP URL to be used in an XML sitemap file.
 
-For text sitemap please refer to __[checkHttpURL](#checkhttpurluri)__ as there is no need to escape entities.
-
-This function uses *checkHttpURL* to __[check URI provided is valid](#checkhttpurluri)__.
+For text sitemap please refer to __[checkHttpURL](#checkhttpurluri)__ as there is no need to escape entities **but URL must be in lowercase**.
 
 **Rules**:
-1. scheme must be `http` or `HTTP`;
+1. __[must be a valid URL](#checkhttpurluri)__;
+1. scheme must be `http`;
 2. authority is required;
 3. specific characters must be escaped;
-4. can only contain lowercase characters;
+4. can only contain lowercase characters (prechecked);
 5. URL must be less than 2048 characters.
 
 **Valid URI characters to be escaped or percent-encoded in a sitemap URL **:
@@ -794,6 +802,7 @@ This function uses *checkHttpURL* to __[check URI provided is valid](#checkhttpu
     - `URI_INVALID_HOST`
     - `URI_INVALID_USERINFO_CHAR`
     - `URI_INVALID_PORT`
+    - `URI_INVALID_CHAR`
     - `URI_INVALID_PATH_CHAR`
     - `URI_INVALID_QUERY_CHAR`
     - `URI_INVALID_FRAGMENT_CHAR`
@@ -813,6 +822,9 @@ checkHttpSitemapURL('http:////bar'); // throws URIError with code URI_INVALID_PA
 checkHttpSitemapURL('http://xn--iñvalid.com'); // throws URIError with code URI_INVALID_HOST
 checkHttpSitemapURL('http://*ser:pass@bar.com'); // throws URIError with code URI_INVALID_USERINFO_CHAR
 checkHttpSitemapURL('http://bar.com:80g80'); // throws URIError with code URI_INVALID_PORT
+checkHttpSitemapURL('hTtp://bar.com/Path'); // throws URIError with code URI_INVALID_CHAR
+checkHttpSitemapURL('http://bAr.com/Path'); // throws URIError with code URI_INVALID_CHAR
+checkHttpSitemapURL('http://bar.com/Path'); // throws URIError with code URI_INVALID_CHAR
 checkHttpSitemapURL('http://bar.com/path\''); // throws URIError with code URI_INVALID_PATH_CHAR
 checkHttpSitemapURL('http://bar.com/over/there?a=5&b=9'); // throws URIError with code URI_INVALID_QUERY_CHAR
 checkHttpSitemapURL('http://bar.com/over/there?a=5#anch*r'); // throws URIError with code URI_INVALID_FRAGMENT_CHAR
@@ -841,13 +853,13 @@ checkHttpSitemapURL('http://user:pass@xn--fiq228c.com:8042/over/there?name=ferre
 ```
 
 ## checkHttpsSitemapURL(uri)
-Check an URI is a valid HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme must be `https` or `HTTPS`.
+Check an URI is a valid HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme must be `https`.
 
 ## checkWebURL(uri)
 Check an URI is a valid HTTP or HTTPS URL. Same behavior than __[checkHttpURL](#checkhttpurluri)__ except scheme can be `http`/`HTTP` or `https`/`HTTPS`.
 
 ## checkSitemapURL(uri)
-Check an URI is a valid HTTP or HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme can be `http`/`HTTP` or `https`/`HTTPS`.
+Check an URI is a valid HTTP or HTTPS URL to be used in an XML sitemap file. Same behavior than __[checkHttpSitemapURL](#checkhttpsitemapurluri)__ except scheme can be `http` or `https`.
 
 ## encodeURIComponentString(component, options)
 Encode an URI component according to **RFC-3986**.
@@ -1368,7 +1380,7 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
   </tr>
 
   <tr>
-    <td rowspan="18"><i>URIError</i></td>
+    <td rowspan="19"><i>URIError</i></td>
   </tr>
 
   <tr>
@@ -1429,6 +1441,12 @@ Errors emitted by *node-uri* are native URIError with an additional *code* prope
     <td>URI_INVALID_PORT</td>
     <td>URI port is not a number</td>
     <td><code>lib/checkers</code><br/><code>lib/decoders</code><br/><code>lib/encoders</code></td>
+  </tr>
+
+  <tr>
+    <td>URI_INVALID_CHAR</td>
+    <td>URI contains an invalid character</td>
+    <td><code>lib/checkers</code></td>
   </tr>
 
   <tr>
