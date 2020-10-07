@@ -1,6 +1,6 @@
 {
   "name": "node-uri",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Adrien Valcke <adrienvalcke@icloud.com> (https://github.com/adrienv1520)",
   "description": "An RFC-3986 compliant and zero-dependencies Node.js module to parse URIs, punycode, punydecode, test URIs, URLs, Sitemap URLS, domains, IPs but also encode and decode URIs, URLs and Sitemap URLs",
   "bin": {},
