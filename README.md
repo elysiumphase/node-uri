@@ -1073,7 +1073,7 @@ Uses __[a fixed encodeURI function](#encodeuristringuri-options)__ to be **RFC-3
 **Support**:
 - Sitemap's special characters, see __[checkHttpSitemapURL](#checkhttpsitemapurluri)__;
 - IDNs: returns URI with its Punycode host, if any;
-- characters are automatically put in lowercase.
+- **characters are automatically put in lowercase**.
 
 **Note**:
 - only `userinfo`, `path`, `query` and `fragment` can be percent-encoded;
