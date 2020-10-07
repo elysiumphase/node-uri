@@ -61,7 +61,7 @@ The main features of this project are:
 - check an URI, HTTP/HTTPS/Sitemap URL, IP, domain is valid with clear checking errors;
 - encode/decode an URI, HTTP/HTTPS/Sitemap URL.
 
-**2462 assertions** ensure parsing, encoding, decoding, checking URIs, URLs, IPs, domains are working as expected. This does not make this library a 100% reliable source. So if you find any errors, please feel free to report, [contribute](#contributing) and help fixing any issues.
+**2805 assertions** ensure parsing, encoding, decoding, checking URIs, URLs, IPs, domains are working as expected. This does not make this library a 100% reliable source. So if you find any errors, please feel free to report, [contribute](#contributing) and help fixing any issues.
 
 To make sure we properly understand the difference between an URI and an URL, these two are not exactly the same thing. An URI is an identifier of a specific resource. Like a page, a book, or a document. An URL is a special type of identifier that also tells you how to access it, such as HTTPs, FTP, etc. If the protocol (https, ftp, etc.) is either present or implied for a domain, you should call it an URL even though it’s also an URI.
 
@@ -141,9 +141,9 @@ const {
 ## punycode(domain)
 Returns the Punycode ASCII serialization of the domain. If domain is an invalid domain, the empty string is returned.
 
-Native function throws if no domain is provided or returns `null`, `undefined`, `nan` for `null`, `undefined` or `NaN` values which is totally not what to be expected.
-
-Moreover native function does not support IPv6.
+**Note**:
+- native function `url.domainToASCII` does not support IPv6 only IPv4;
+- native function `url.domainToASCII` throws if no domain is provided or returns `null`, `undefined`, `nan` for `null`, `undefined` or `NaN` values which is not what to be expected.
 
 <br/>
 
@@ -167,9 +167,9 @@ punycode(undefined|null|NaN); // ''
 ## punydecode(domain)
 Returns the Unicode serialization of the domain. If domain is an invalid domain, the empty string is returned.
 
-Native function throws if no domain is provided or returns `null`, `undefined`, `nan` for `null`, `undefined` or `NaN` values which is totally not what to be expected.
-
-Moreover native function does not support IPv6.
+**Note**:
+- native function `url.domainToUnicode` does not support IPv6 only IPv4;
+- native function `url.domainToUnicode` throws if no domain is provided or returns `null`, `undefined`, `nan` for `null`, `undefined` or `NaN` values which is not what to be expected.
 
 <br/>
 
@@ -402,6 +402,16 @@ recomposeURI({
   query: 'a=b',
   fragment: 'anchor',
 }); // 'foo://user:pass@bar.com:8080/over/there?a=b#anchor'
+
+recomposeURI({
+  scheme: 'foo',
+  userinfo: 'user:pass',
+  host: 'fe80::7:8%eth0',
+  port: '8080',
+  path: '/over/there',
+  query: 'a=b',
+  fragment: 'anchor',
+}); // 'foo://user:pass@[fe80::7:8%eth0]:8080/over/there?a=b#anchor'
 ```
 
 ## isDomainLabel(label)
