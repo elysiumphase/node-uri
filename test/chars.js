@@ -10,24 +10,56 @@ const hexdig = 'ABCDEF';
 const digits = '0123456789';
 
 // allowed
-const allowed = '!"#$%&\'()*+,-./:;=?@[]_~';
-const allowedURIChars = `${az}${AZ}${digits}${allowed}`;
-const allowedURIToEncodeChars = allowedURIChars.replace('%', '');
-const allowedSitemapToEncodeChars = `${allowedURIToEncodeChars}<>`;
-const domainAllowedChars = `${az}${digits}-`;
+const allowed = '!#$%&\'()*+,-./:;=?@[]_~';
+
+const unreserved = `${az}${AZ}${digits}-._~`;
+const genDelims = ':/?#[]@';
+const subDelims = '!$&\'()*+,;=';
+const reserved = `${genDelims}${subDelims}`;
+const sitemapSubDelims = subDelims.replace(/[*']/g, '');
+
 const allowedSchemeChars = `${az}${digits}+-.`;
+const allowedDomainChars = `${az}${digits}-`;
 const allowedPercentEncodingChars = `${digits}${hexdig}`;
-const allowedUserinfoChars = `${az}${digits}!"$%&'()*+,-.:;=_~`;
+
+const allowedUserinfoChars = `${unreserved}%${subDelims}:`;
+const allowedPathChars = `${unreserved}%${subDelims}:@/`;
+const allowedQueryOrFragmentChars = `${allowedPathChars}?`;
+
+const allowedSitemapUserinfoChars = `${az}${digits}-._~%${sitemapSubDelims}:`;
+const allowedSitemapPathChars = `${az}${digits}-._~%${sitemapSubDelims}:@/`;
+const allowedSitemapQueryOrFragmentChars = `${allowedSitemapPathChars}?`;
+
+const allowedUserinfoCharsToEncode = `${unreserved}${subDelims}:`;
+const allowedPathCharsToEncode = `${unreserved}${subDelims}:@/`;
+const allowedQueryOrFragmentCharsToEncode = `${allowedPathCharsToEncode}?`;
+
+const allowedSitemapUserinfoCharsToEncode = `${az}${digits}-._~${sitemapSubDelims}:`;
+const allowedSitemapPathCharsToEncode = `${az}${digits}-._~${sitemapSubDelims}:@/`;
+const allowedSitemapQueryOrFragmentCharsToEncode = `${allowedSitemapPathCharsToEncode}?`;
 
 // disallowed
-const disallowed = '\\^`{|}';
-const disallowedURIChars = `${disallowed}<>`;
-const disallowedURIToEncodeChars = `${disallowed}<>`;
-const disallowedSitemapToEncodeChars = `${disallowed}`;
-const disallowedDomainChars = `${AZ}${allowed.replace('-', '')}`;
-const disallowedSchemeChars = `${disallowedURIChars}${allowed.replace(/[-+.]/g, '')}`;
-const disallowedPercentEncodingChars = `${az}${GZ}${allowed}${disallowed}<>`;
+const disallowed = '\\^`{|}<>';
+const disallowedSchemeChars = `${AZ}${disallowed}${allowed.replace(/[-+.]/g, '')}`;
+const disallowedDomainChars = `${AZ}${disallowed}${allowed.replace('-', '')}`;
+const disallowedPercentEncodingChars = `${az}${GZ}${allowed}${disallowed}`;
+
 const disallowedUserinfoChars = '#/?@[]';
+const disallowedPathChars = '?#[]';
+const disallowedQueryOrFragmentChars = '#[]';
+
+const disallowedSitemapUserinfoChars = `${disallowedUserinfoChars}${AZ}*\'`;
+const disallowedSitemapPathChars = `${disallowedPathChars}${AZ}*\'`;
+const disallowedSitemapQueryOrFragmentChars = `${disallowedQueryOrFragmentChars}${AZ}*\'`;
+
+const disallowedUserinfoCharsToEncode = `${disallowedUserinfoChars}%`;
+const disallowedPathCharsToEncode = `${disallowedPathChars}%`;
+const disallowedQueryOrFragmentCharsToEncode = `${disallowedQueryOrFragmentChars}%`;
+
+const disallowedSitemapUserinfoCharsToEncode = `${disallowedSitemapUserinfoChars}%`;
+const disallowedSitemapPathCharsToEncode = `${disallowedSitemapPathChars}%`;
+const disallowedSitemapQueryOrFragmentCharsToEncode = `${disallowedSitemapQueryOrFragmentChars}%`;
+
 const disallowedOtherChars = '€°éùèàç §£';
 
 module.exports = Object.freeze({
@@ -37,20 +69,41 @@ module.exports = Object.freeze({
   hexdig,
   digits,
   allowed,
-  allowedURIChars,
-  allowedURIToEncodeChars,
-  allowedSitemapToEncodeChars,
-  domainAllowedChars,
+  unreserved,
+  genDelims,
+  subDelims,
+  reserved,
+  sitemapSubDelims,
   allowedSchemeChars,
+  allowedDomainChars,
   allowedPercentEncodingChars,
   allowedUserinfoChars,
+  allowedPathChars,
+  allowedQueryOrFragmentChars,
+  allowedSitemapUserinfoChars,
+  allowedSitemapPathChars,
+  allowedSitemapQueryOrFragmentChars,
+  allowedUserinfoCharsToEncode,
+  allowedPathCharsToEncode,
+  allowedQueryOrFragmentCharsToEncode,
+  allowedSitemapUserinfoCharsToEncode,
+  allowedSitemapPathCharsToEncode,
+  allowedSitemapQueryOrFragmentCharsToEncode,
   disallowed,
-  disallowedURIChars,
-  disallowedURIToEncodeChars,
-  disallowedSitemapToEncodeChars,
-  disallowedDomainChars,
   disallowedSchemeChars,
+  disallowedDomainChars,
   disallowedPercentEncodingChars,
   disallowedUserinfoChars,
+  disallowedPathChars,
+  disallowedQueryOrFragmentChars,
+  disallowedSitemapUserinfoChars,
+  disallowedSitemapPathChars,
+  disallowedSitemapQueryOrFragmentChars,
+  disallowedUserinfoCharsToEncode,
+  disallowedPathCharsToEncode,
+  disallowedQueryOrFragmentCharsToEncode,
+  disallowedSitemapUserinfoCharsToEncode,
+  disallowedSitemapPathCharsToEncode,
+  disallowedSitemapQueryOrFragmentCharsToEncode,
   disallowedOtherChars,
 });

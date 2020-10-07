@@ -97,6 +97,14 @@ describe('#domain', function() {
       expect(isDomain('xn--fiq228c.xn--espaol-zwa.com')).to.be.a('boolean').and.to.be.true;
     });
 
+    it('should return false if a domain label starts with xn-- but has invalid label characters', function() {
+      expect(isDomain('xn--\'-6xd.com')).to.be.a('boolean').and.to.be.false;
+      expect(isDomain('xn--/-6xd.com')).to.be.a('boolean').and.to.be.false;
+      expect(isDomain('xn--6xd=.com')).to.be.a('boolean').and.to.be.false;
+      expect(isDomain('xn--6xéd.com')).to.be.a('boolean').and.to.be.false;
+      expect(isDomain('xn--6*xd.com')).to.be.a('boolean').and.to.be.false;
+    });
+
     it('should return true if a domain name has non ASCII characters to support IDN', function() {
       expect(isDomain('中文.com')).to.be.a('boolean').and.to.be.true;
       expect(isDomain('español.com')).to.be.a('boolean').and.to.be.true;

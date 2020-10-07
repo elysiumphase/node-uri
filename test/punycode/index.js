@@ -27,7 +27,6 @@ describe('#punycode', function() {
       expect(punycode('http://www.host.com')).to.be.a('string').and.to.equals('');
       expect(punycode('http://www')).to.be.a('string').and.to.equals('');
       expect(punycode(':-')).to.be.a('string').and.to.equals('');
-      expect(punycode('::')).to.be.a('string').and.to.equals('');
     });
 
     it('should return a punycode ASCII serialization of the domain if domain is a valid IDN', function() {
@@ -39,6 +38,17 @@ describe('#punycode', function() {
     it('should return a punycode ASCII serialization of the domain if domain is a valid ASCII FQDN', function() {
       expect(punycode('example.com.')).to.be.a('string').and.to.equals('example.com.');
       expect(punycode('a.b.c.d.e.fg')).to.be.a('string').and.to.equals('a.b.c.d.e.fg');
+      expect(punycode('localhost')).to.be.a('string').and.to.equals('localhost');
+    });
+
+    it('should return the exact same IP if IPv4', function() {
+      expect(punycode('18.101.25.153')).to.be.a('string').and.to.equals('18.101.25.153');
+      expect(punycode('0.0.0.0')).to.be.a('string').and.to.equals('0.0.0.0');
+    });
+
+    it('should return the exact same IP if IPv6', function() {
+      expect(punycode('::')).to.be.a('string').and.to.equals('::');
+      expect(punycode('fe80::7:8%eth0')).to.be.a('string').and.to.equals('fe80::7:8%eth0');
     });
   });
 
@@ -64,7 +74,6 @@ describe('#punycode', function() {
       expect(punydecode('http://www.host.com')).to.be.a('string').and.to.equals('');
       expect(punydecode('http://www')).to.be.a('string').and.to.equals('');
       expect(punydecode(':-')).to.be.a('string').and.to.equals('');
-      expect(punydecode('::')).to.be.a('string').and.to.equals('');
     });
 
     it('should return a Unicode serialization of the domain if domain is a valid IDN serialized', function() {
@@ -76,6 +85,17 @@ describe('#punycode', function() {
     it('should return a Unicode serialization of the domain if domain is a valid ASCII FQDN', function() {
       expect(punydecode('example.com.')).to.be.a('string').and.to.equals('example.com.');
       expect(punydecode('a.b.c.d.e.fg')).to.be.a('string').and.to.equals('a.b.c.d.e.fg');
+      expect(punydecode('localhost')).to.be.a('string').and.to.equals('localhost');
+    });
+
+    it('should return the exact same IP if IPv4', function() {
+      expect(punydecode('18.101.25.153')).to.be.a('string').and.to.equals('18.101.25.153');
+      expect(punydecode('0.0.0.0')).to.be.a('string').and.to.equals('0.0.0.0');
+    });
+
+    it('should return the exact same IP if IPv6', function() {
+      expect(punydecode('::')).to.be.a('string').and.to.equals('::');
+      expect(punydecode('fe80::7:8%eth0')).to.be.a('string').and.to.equals('fe80::7:8%eth0');
     });
   });
 });

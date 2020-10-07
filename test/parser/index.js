@@ -1,10 +1,40 @@
 const { expect } = require('../Common');
 const {
+  hostToURI,
   parseURI,
   recomposeURI,
 } = require('../../lib/parser');
+const { minPortInteger, maxPortInteger } = require('../../lib/config');
 
 describe('#parser', function() {
+  context('when using hostToURI', function() {
+    it('should return the empty string if not a string', function() {
+      expect(hostToURI()).to.be.a('string').and.to.equals('');
+      expect(hostToURI(5)).to.be.a('string').and.to.equals('');
+      expect(hostToURI(true)).to.be.a('string').and.to.equals('');
+      expect(hostToURI(new Error('error'))).to.be.a('string').and.to.equals('');
+      expect(hostToURI({})).to.be.a('string').and.to.equals('');
+      expect(hostToURI([])).to.be.a('string').and.to.equals('');
+      expect(hostToURI(null)).to.be.a('string').and.to.equals('');
+      expect(hostToURI(undefined)).to.be.a('string').and.to.equals('');
+      expect(hostToURI(NaN)).to.be.a('string').and.to.equals('');
+    });
+
+    it('should return the exact same string if not a IPv6', function() {
+      expect(hostToURI('')).to.be.a('string').and.to.equals('');
+      expect(hostToURI('192.0.2.235')).to.be.a('string').and.to.equals('192.0.2.235');
+      expect(hostToURI('test')).to.be.a('string').and.to.equals('test');
+      expect(hostToURI('1000.2.3.4')).to.be.a('string').and.to.equals('1000.2.3.4');
+      expect(hostToURI('02001:0000:1234:0000:0000:C1C0:ABCD:0876')).to.be.a('string').and.to.equals('02001:0000:1234:0000:0000:C1C0:ABCD:0876');
+    });
+
+    it('should return a string surrounder by brackets if IPv6', function() {
+      expect(hostToURI('FF01:0:0:0:0:0:0:101')).to.be.a('string').and.to.equals('[FF01:0:0:0:0:0:0:101]');
+      expect(hostToURI('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).to.be.a('string').and.to.equals('[2001:0db8:85a3:0000:0000:8a2e:0370:7334]');
+      expect(hostToURI('2::10')).to.be.a('string').and.to.equals('[2::10]');
+    });
+  });
+
   context('when using parseURI', function() {
     const parsed = {
       scheme: null,
@@ -18,6 +48,7 @@ describe('#parser', function() {
       pathqf: null,
       query: null,
       fragment: null,
+      href: null,
     };
 
     it('should return an object with null attributes if no uri is provided', function() {
@@ -49,6 +80,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', null);
 
       parsedURI = parseURI('httpwwwexample5com');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', null);
@@ -62,6 +94,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', null);
 
       parsedURI = parseURI('example.com');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', null);
@@ -75,6 +108,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', null);
 
       parsedURI = parseURI('example.com/index.html');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', null);
@@ -88,6 +122,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', null);
 
       parsedURI = parseURI('/example.com/index.html');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', null);
@@ -101,6 +136,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', null);
     });
 
     it('should return an object with missing attributes at null if uri is not valid', function() {
@@ -116,6 +152,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/path');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:/path');
 
       parsedURI = parseURI('http::path');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -129,6 +166,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', ':path');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http::path');
 
       parsedURI = parseURI('http:\\path');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -142,6 +180,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '\\path');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:\\path');
 
       parsedURI = parseURI('http://');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -155,6 +194,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:');
     });
 
     it('should return an object with appropriate attributes if uri is valid', function() {
@@ -170,6 +210,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://example.com:8042/over/there?name=ferret#nose');
 
       parsedURI = parseURI('foo://user:pass@example.com:8042/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -183,6 +224,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://user:pass@example.com:8042/over/there?name=ferret#nose');
 
       parsedURI = parseURI('foo://example.com/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -196,6 +238,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://example.com/over/there?name=ferret#nose');
     });
 
     it('should return an object with the original port value if port is not an integer', function() {
@@ -211,6 +254,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://example.com/over/there?name=ferret#nose');
     });
 
     it('should return an object with the scheme an hosts in lowercase', function() {
@@ -226,6 +270,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://example.com/');
 
       parsedURI = parseURI('foo://中文.COM:8042/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -239,6 +284,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://xn--fiq228c.com:8042/over/there?name=ferret#nose');
 
       parsedURI = parseURI('fOo://WwW.中文.COM:8042/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -252,6 +298,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://www.xn--fiq228c.com:8042/over/there?name=ferret#nose');
     });
 
     it('should return an object with the authority and host attributes with the Punycode ASCII serialization value + authorityPunydecoded and hostPunydecoded with the original Unicode serialization value in lowercase', function() {
@@ -267,6 +314,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://xn--fiq228c.com:8042/over/there?name=ferret#nose');
 
       parsedURI = parseURI('foo://xn--fiq228c.com:8042/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -280,6 +328,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://xn--fiq228c.com:8042/over/there?name=ferret#nose');
 
       parseURI('foo://中文.COM:8042/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -293,6 +342,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://xn--fiq228c.com:8042/over/there?name=ferret#nose');
 
       parsedURI = parseURI('foo://WWW.xn--fiq228c.COM:8042/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'foo');
@@ -306,6 +356,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/over/there?name=ferret#nose');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'name=ferret');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'nose');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'foo://www.xn--fiq228c.com:8042/over/there?name=ferret#nose');
     });
 
     it('should return an object with authority and its components at null except original authority components if uri has an invalid host', function() {
@@ -321,6 +372,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:');
 
       parsedURI = parseURI('http://user:pass@xn--iñvalid.com');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -334,6 +386,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:');
 
       parsedURI = parseURI('http://xn--iñvalid.com');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -347,6 +400,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:');
 
       parsedURI = parseURI('http://user:pass@example.co.jp\\');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -360,6 +414,7 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:');
 
       parsedURI = parseURI('http://user:pass@xn--iñvalid.com:8080/path?query=test#fragment');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
@@ -373,6 +428,95 @@ describe('#parser', function() {
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '/path?query=test#fragment');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', 'query=test');
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', 'fragment');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:/path?query=test#fragment');
+    });
+
+    it('should parse IPv4 hosts', function() {
+      let parsedURI = parseURI('http://223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('port', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://223.255.255.255/');
+
+      parsedURI = parseURI('http://user:pass@223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', 'user:pass@223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('port', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://user:pass@223.255.255.255/');
+
+      parsedURI = parseURI('http://user:pass@223.255.255.255:8080');
+      expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', 'user:pass@223.255.255.255:8080');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@223.255.255.255:8080');
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', '223.255.255.255');
+      expect(parsedURI).to.be.an('object').and.to.have.property('port', 8080);
+      expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://user:pass@223.255.255.255:8080/');
+    });
+
+    it('should parse IPv6 hosts', function() {
+      let parsedURI = parseURI('http://[fe80::7:8%eth0]');
+      expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', '[fe80::7:8%eth0]');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', '[fe80::7:8%eth0]');
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', 'fe80::7:8%eth0');
+      expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', 'fe80::7:8%eth0');
+      expect(parsedURI).to.be.an('object').and.to.have.property('port', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://[fe80::7:8%eth0]/');
+
+      parsedURI = parseURI('http://user:pass@[fe80::7:8%eth0]');
+      expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', 'user:pass@[fe80::7:8%eth0]');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@[fe80::7:8%eth0]');
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', 'fe80::7:8%eth0');
+      expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', 'fe80::7:8%eth0');
+      expect(parsedURI).to.be.an('object').and.to.have.property('port', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://user:pass@[fe80::7:8%eth0]/');
+
+      parsedURI = parseURI('http://user:pass@[fe80::7:8%eth0]:8080');
+      expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', 'user:pass@[fe80::7:8%eth0]:8080');
+      expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@[fe80::7:8%eth0]:8080');
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', 'fe80::7:8%eth0');
+      expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', 'fe80::7:8%eth0');
+      expect(parsedURI).to.be.an('object').and.to.have.property('port', 8080);
+      expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
+      expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://user:pass@[fe80::7:8%eth0]:8080/');
     });
   });
 
@@ -456,7 +600,7 @@ describe('#parser', function() {
       expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('f:');
     });
 
-    it('should return an empty string if uri host is present and path is not empty or start with /', function() {
+    it('should return an empty string if uri host is present and path is not empty or does not start with /', function() {
       const toRecompose = {
         scheme: 'foo',
         userinfo: 'user:pass',
@@ -481,7 +625,7 @@ describe('#parser', function() {
         fragment: null,
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://bar.com');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://bar.com/');
 
       toRecompose.path = '/';
       expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://bar.com/');
@@ -543,10 +687,103 @@ describe('#parser', function() {
         fragment: null,
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://b.r');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://b.r/');
     });
 
-    it('should return an empty string if uri userinfo is not at least 1 character', function() {
+    it('should add / if path is null or empty but host is not empty', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: 'example.com',
+        port: null,
+        path: '',
+        query: null,
+        fragment: null,
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+    });
+
+    it('should not add / if path is not null or empty but host is empty', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: null,
+        port: null,
+        path: 'bar',
+        query: null,
+        fragment: null,
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo:bar');
+    });
+
+    it('should ignore port if not a number', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: 'example.com',
+        port: '80g80',
+        path: '',
+        query: null,
+        fragment: null,
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+
+      toRecompose.port = NaN;
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+    });
+
+    it('should ignore port if out of range', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: 'example.com',
+        port: minPortInteger - 1,
+        path: '',
+        query: null,
+        fragment: null,
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+
+      toRecompose.port = maxPortInteger + 1;
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+    });
+
+    it('should parse port', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: 'example.com',
+        port: '8080',
+        path: '',
+        query: null,
+        fragment: null,
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com:8080/');
+    });
+
+    it('should not ignore port if in range', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: 'example.com',
+        port: minPortInteger,
+        path: '',
+        query: null,
+        fragment: null,
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals(`foo://example.com:${minPortInteger}/`);
+
+      toRecompose.port = maxPortInteger;
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals(`foo://example.com:${maxPortInteger}/`);
+    });
+
+    it('should ignore userinfo if not at least 1 character', function() {
       const toRecompose = {
         scheme: 'foo',
         userinfo: '',
@@ -557,52 +794,27 @@ describe('#parser', function() {
         fragment: 'anchor',
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/?a=b#anchor');
+
+      toRecompose.userinfo = null;
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/?a=b#anchor');
     });
 
-    it('should return the recomposed uri if uri userinfo is at least 1 character', function() {
+    it('should not ignore userinfo if at least 1 character', function() {
       const toRecompose = {
         scheme: 'foo',
         userinfo: 'u',
-        host: 'bar.com',
-        port: null,
-        path: '',
-        query: null,
-        fragment: null,
-      };
-
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://u@bar.com');
-    });
-
-    it('should return an empty string if uri port is not an integer', function() {
-      const toRecompose = {
-        scheme: 'foo',
-        userinfo: null,
         host: 'example.com',
-        port: '80g80',
+        port: null,
         path: '',
         query: 'a=b',
         fragment: 'anchor',
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://u@example.com/?a=b#anchor');
     });
 
-    it('should return the recomposed uri if uri port is an integer', function() {
-      const toRecompose = {
-        scheme: 'foo',
-        userinfo: null,
-        host: 'bar.com',
-        port: 8080,
-        path: '',
-        query: null,
-        fragment: null,
-      };
-
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://bar.com:8080');
-    });
-
-    it('should return an empty string if uri query is not at least 1 character', function() {
+    it('should ignore query if not at least 1 character', function() {
       const toRecompose = {
         scheme: 'foo',
         userinfo: null,
@@ -613,24 +825,13 @@ describe('#parser', function() {
         fragment: 'anchor',
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/#anchor');
+
+      toRecompose.query = null;
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/#anchor');
     });
 
-    it('should return the recomposed uri if uri query is at least 1 character', function() {
-      const toRecompose = {
-        scheme: 'foo',
-        userinfo: null,
-        host: 'bar.com',
-        port: null,
-        path: '',
-        query: 'q',
-        fragment: null,
-      };
-
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://bar.com?q');
-    });
-
-    it('should return an empty string if uri fragment is not at least 1 character', function() {
+    it('should not ignore query if at least 1 character', function() {
       const toRecompose = {
         scheme: 'foo',
         userinfo: null,
@@ -638,24 +839,69 @@ describe('#parser', function() {
         port: null,
         path: '',
         query: 'a=b',
-        fragment: '',
+        fragment: 'anchor',
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/?a=b#anchor');
     });
 
-    it('should return the recomposed uri if uri fragment is at least 1 character', function() {
+    it('should ignore fragment if not at least 1 character', function() {
       const toRecompose = {
         scheme: 'foo',
         userinfo: null,
-        host: 'bar.com',
+        host: 'example.com',
         port: null,
         path: '',
         query: null,
-        fragment: 'a',
+        fragment: '',
       };
 
-      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://bar.com#a');
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+
+      toRecompose.fragment = null;
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/');
+    });
+
+    it('should not ignore fragment if at least 1 character', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: 'example.com',
+        port: null,
+        path: '',
+        query: null,
+        fragment: 'anchor',
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://example.com/#anchor');
+    });
+
+    it('should support IPv4 host', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: '23.71.254.72',
+        port: null,
+        path: '',
+        query: null,
+        fragment: '',
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://23.71.254.72/');
+    });
+
+    it('should support IPv6 host', function() {
+      const toRecompose = {
+        scheme: 'foo',
+        userinfo: null,
+        host: '::ffff:192.168.1.26',
+        port: null,
+        path: '',
+        query: null,
+        fragment: '',
+      };
+
+      expect(recomposeURI(toRecompose)).to.be.an('string').and.to.equals('foo://[::ffff:192.168.1.26]/');
     });
 
     it('should return the recomposed uri', function() {
