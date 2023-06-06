@@ -3,7 +3,7 @@ const {
   isIP,
   isIPv4,
   isIPv6,
-} = require('../../lib/ip');
+} = require('../../src/ip');
 
 const v4 = [
 	'0.0.0.0',

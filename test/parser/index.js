@@ -3,8 +3,8 @@ const {
   hostToURI,
   parseURI,
   recomposeURI,
-} = require('../../lib/parser');
-const { minPortInteger, maxPortInteger } = require('../../lib/config');
+} = require('../../src/parser');
+const { minPortInteger, maxPortInteger } = require('../../src/config');
 
 describe('#parser', function() {
   context('when using hostToURI', function() {
@@ -404,17 +404,17 @@ describe('#parser', function() {
 
       parsedURI = parseURI('http://user:pass@example.co.jp\\');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');
-      expect(parsedURI).to.be.an('object').and.to.have.property('authority', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('authority', 'user:pass@example.co.jp');
       expect(parsedURI).to.be.an('object').and.to.have.property('authorityPunydecoded', 'user:pass@example.co.jp\\');
-      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', null);
-      expect(parsedURI).to.be.an('object').and.to.have.property('host', null);
+      expect(parsedURI).to.be.an('object').and.to.have.property('userinfo', 'user:pass');
+      expect(parsedURI).to.be.an('object').and.to.have.property('host', 'example.co.jp');
       expect(parsedURI).to.be.an('object').and.to.have.property('hostPunydecoded', 'example.co.jp\\');
       expect(parsedURI).to.be.an('object').and.to.have.property('port', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('path', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('pathqf', '');
       expect(parsedURI).to.be.an('object').and.to.have.property('query', null);
       expect(parsedURI).to.be.an('object').and.to.have.property('fragment', null);
-      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http:');
+      expect(parsedURI).to.be.an('object').and.to.have.property('href', 'http://user:pass@example.co.jp/');
 
       parsedURI = parseURI('http://user:pass@xn--iñvalid.com:8080/path?query=test#fragment');
       expect(parsedURI).to.be.an('object').and.to.have.property('scheme', 'http');

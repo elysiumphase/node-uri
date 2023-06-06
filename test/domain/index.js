@@ -2,7 +2,7 @@ const { expect } = require('../Common');
 const {
   isDomainLabel,
   isDomain,
-} = require('../../lib/domain');
+} = require('../../src/domain');
 
 describe('#domain', function() {
   context('when using isDomainLabel', function() {

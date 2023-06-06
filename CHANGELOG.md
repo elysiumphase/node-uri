@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.1.2 - delivery @06/06/2023
+
+- chore: update dev dependencies
+- docs: update
+
 ## 1.1.1 - delivery @07/10/2020
 
 - fix readme typo

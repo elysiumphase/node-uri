@@ -18,7 +18,7 @@ assignees: ''
 
 * [ ] I have read the [Contributing Guidelines](../CONTRIBUTING.md) for this project;
 * [ ] I agree to follow the [Code of Conduct](../CODE_OF_CONDUCT.md) that this project adheres to;
-* [ ] I have searched the [issue tracker](https://github.com/adrienv1520/node-uri/issues) for an issue that matches the one I want to file, without success.
+* [ ] I have searched the [issue tracker](https://github.com/elysiumphase/node-uri/issues) for an issue that matches the one I want to file, without success.
 
 ### Bug Details
 

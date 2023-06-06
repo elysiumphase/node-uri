@@ -1,5 +1,5 @@
 const { expect } = require('../Common');
-const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../lib/config');
+const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../src/config');
 const {
   checkPercentEncoding,
   checkSitemapEncoding,
@@ -14,7 +14,7 @@ const {
   checkHttpsSitemapURL,
   checkWebURL,
   checkSitemapURL,
-} = require('../../lib/checkers');
+} = require('../../src/checkers');
 const {
   uri,
   notUri,
