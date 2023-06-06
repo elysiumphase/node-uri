@@ -2,7 +2,7 @@ const { expect } = require('../Common');
 const {
   punycode,
   punydecode,
-} = require('../../lib/punycode');
+} = require('../../src/punycode');
 
 describe('#punycode', function() {
   context('when using punycode', function() {

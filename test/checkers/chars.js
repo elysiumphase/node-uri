@@ -9,7 +9,7 @@ const {
   isQueryOrFragmentChar,
   isSitemapQueryOrFragmentChar,
   isPercentEncodingChar,
-} = require('../../lib/checkers/chars');
+} = require('../../src/checkers/chars');
 const {
   az,
   AZ,

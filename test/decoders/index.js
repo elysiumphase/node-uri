@@ -4,8 +4,8 @@ const {
   decodeURIString,
   decodeWebURL,
   decodeSitemapURL,
-} = require('../../lib/decoders');
-const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../lib/config');
+} = require('../../src/decoders');
+const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../src/config');
 const {
   az,
   AZ,

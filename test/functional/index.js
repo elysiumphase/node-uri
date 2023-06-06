@@ -6,7 +6,7 @@ const {
   decodeURIString,
   decodeWebURL,
   decodeSitemapURL,
-} = require('../../lib');
+} = require('../../src');
 const {
   uri,
   http,

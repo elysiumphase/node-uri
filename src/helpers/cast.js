@@ -1,5 +1,5 @@
 /**
- * Type casting helper from consis (https://github.com/adrienv1520/consis).
+ * Type casting helper from consis (https://github.com/elysiumphase/consis).
  *
  * Cast a value to a specific primitive type. If the value is
  * not of this type or can not be infer from this type, undefined is returned.

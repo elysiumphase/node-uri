@@ -1,11 +1,11 @@
 const { expect } = require('../Common');
-const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../lib/config');
+const { maxLengthURL, minPortInteger, maxPortInteger } = require('../../src/config');
 const {
   encodeURIComponentString,
   encodeURIString,
   encodeWebURL,
   encodeSitemapURL,
-} = require('../../lib/encoders');
+} = require('../../src/encoders');
 const {
   az,
   AZ,
